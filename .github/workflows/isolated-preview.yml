@@ -21,9 +21,11 @@ jobs:
       - name: Verify and unpack source-only inputs
         run: |
           python3 - <<'PY'
-          import hashlib, json, zipfile
+          import hashlib, json, os, zipfile
           from pathlib import Path, PurePosixPath
           root = Path.cwd()
+          app = Path(os.environ['RUNNER_TEMP']) / 'skool-atlas-preview'
+          app.mkdir()
           manifest = json.loads((root / 'preview-build/manifest.json').read_text())
           for record in manifest['archives']:
               archive = root / 'preview-build' / record['name']
@@ -34,7 +36,7 @@ jobs:
                       assert not path.is_absolute() and '..' not in path.parts
                       assert path.parts[0] in {'lib', 'test', 'web', 'assets', 'tools', 'pubspec.yaml', 'pubspec.lock', 'analysis_options.yaml'}
                       assert path.suffix.lower() not in {'.exe', '.dll', '.bat', '.cmd', '.msi'}
-                  z.extractall(root)
+                  z.extractall(app)
           print('Verified source and public school assets; no Windows executables supplied.')
           PY
       - name: Install checksum-verified official Linux Flutter SDK
@@ -46,12 +48,16 @@ jobs:
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
           find "$RUNNER_TEMP/flutter/bin/cache/dart-sdk" -type f -print0 | sort -z | xargs -0 sha256sum > "$RUNNER_TEMP/dart-sdk.sha256"
       - name: Resolve locked packages
+        working-directory: ${{ runner.temp }}/skool-atlas-preview
         run: flutter pub get --enforce-lockfile
       - name: Analyse updated app
+        working-directory: ${{ runner.temp }}/skool-atlas-preview
         run: flutter analyze
       - name: Run widget and app regressions
+        working-directory: ${{ runner.temp }}/skool-atlas-preview
         run: flutter test --concurrency=1 --reporter expanded
       - name: Check all page layouts on phone and desktop in both themes
+        working-directory: ${{ runner.temp }}/skool-atlas-preview
         env:
           ATLAS_LAYOUT_PAGE: shell,choices,tools,home,explore,saved,compare,guides,checklist,resources,pilot,placement,results,results-location,results-choices,account,careers,support,offline,stories,sources,portal,privacy,profile,profile-bawjiase
         run: |
@@ -62,6 +68,7 @@ jobs:
           done
           ATLAS_LAYOUT_WIDTH=320 ATLAS_LAYOUT_DARK=true ATLAS_LAYOUT_SCALE=1.4 flutter test test/page_layout_audit_test.dart --concurrency=1 --reporter expanded
       - name: Build local-preview web files
+        working-directory: ${{ runner.temp }}/skool-atlas-preview
         run: |
           flutter build web --no-pub --no-web-resources-cdn --no-wasm-dry-run --no-tree-shake-icons --target lib/main.dart
           python3 tools/build_offline_manifest.py
@@ -76,6 +83,6 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: skool-atlas-isolated-web-preview
-          path: build/web/
+          path: ${{ runner.temp }}/skool-atlas-preview/build/web/
           retention-days: 7
           if-no-files-found: error
