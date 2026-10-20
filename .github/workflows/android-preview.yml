@@ -1,0 +1,85 @@
+name: Isolated Android installation preview
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['codex/isolated-preview-build-20261020']
+    paths: ['preview-build/native-input.json']
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Check out build inputs
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify and unpack source-only inputs
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, zipfile
+          from pathlib import Path, PurePosixPath
+          root = Path.cwd()
+          app = Path(os.environ['RUNNER_TEMP']) / 'skool-atlas-preview'
+          app.mkdir()
+          manifest = json.loads((root / 'preview-build/manifest.json').read_text())
+          for record in manifest['archives'] + [json.loads((root / 'preview-build/native-input.json').read_text())]:
+              archive = root / 'preview-build' / record['name']
+              assert hashlib.sha256(archive.read_bytes()).hexdigest() == record['sha256'], archive
+              with zipfile.ZipFile(archive) as z:
+                  for entry in z.infolist():
+                      path = PurePosixPath(entry.filename)
+                      assert not path.is_absolute() and '..' not in path.parts
+                      assert path.parts[0] in {'lib', 'test', 'web', 'assets', 'tools', 'android-source', 'pubspec.yaml', 'pubspec.lock', 'analysis_options.yaml'}
+                      assert path.suffix.lower() not in {'.exe', '.dll', '.bat', '.cmd', '.msi'}
+                  z.extractall(app)
+          print('Verified source and public school assets; no Windows executables supplied.')
+          PY
+      - name: Install checksum-verified official Linux Flutter SDK
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 'https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.47.2-stable.tar.xz' -o "$RUNNER_TEMP/flutter.tar.xz"
+          echo '447878859d01ca9bfdb99a85f245af07ed8a15fedcd9d189c4749e8e92d1f185  '"$RUNNER_TEMP/flutter.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/flutter.tar.xz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+          find "$RUNNER_TEMP/flutter/bin/cache/dart-sdk" -type f -print0 | sort -z | xargs -0 sha256sum > "$RUNNER_TEMP/dart-sdk.sha256"
+      - name: Resolve locked packages
+        working-directory: ${{ runner.temp }}/skool-atlas-preview
+        run: flutter pub get --enforce-lockfile
+      - name: Prepare Android preview with fresh Linux-generated wrapper
+        working-directory: ${{ runner.temp }}/skool-atlas-preview
+        run: |
+          set -euo pipefail
+          export JAVA_HOME="$JAVA_HOME_17_X64"
+          export PATH="$JAVA_HOME/bin:$PATH"
+          flutter create --platforms=android --org com.skoolatlas --project-name skoolatlas --no-pub .
+          cp -R android-source/. android/
+          flutter config --jdk-dir "$JAVA_HOME"
+          flutter config --android-sdk "$ANDROID_HOME"
+      - name: Build separate installable Android preview
+        working-directory: ${{ runner.temp }}/skool-atlas-preview
+        run: |
+          set -euo pipefail
+          flutter build apk --debug --no-pub --target-platform android-arm64
+          sha256sum --check --quiet "$RUNNER_TEMP/dart-sdk.sha256"
+          mkdir -p build/android-preview
+          cp build/app/outputs/flutter-apk/app-debug.apk build/android-preview/skool-atlas-preview.apk
+          "$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -n1)" verify --verbose --print-certs build/android-preview/skool-atlas-preview.apk > build/android-preview/signature-verification.txt
+          sha256sum build/android-preview/skool-atlas-preview.apk > build/android-preview/SHA256SUMS.txt
+          python3 - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          apk=Path('build/android-preview/skool-atlas-preview.apk')
+          Path('build/android-preview/provenance.json').write_text(json.dumps({'runId':os.environ['GITHUB_RUN_ID'],'workflowCommit':os.environ['GITHUB_SHA'],'platform':'Linux','applicationId':'com.skoolatlas.app.preview','kind':'Debug preview only; no owner release signing or hosted account server','apkSha256':hashlib.sha256(apk.read_bytes()).hexdigest()},indent=2))
+          PY
+      - name: Save Android preview (no store publishing)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: skool-atlas-android-preview
+          path: ${{ runner.temp }}/skool-atlas-preview/build/android-preview/
+          retention-days: 7
+          if-no-files-found: error
