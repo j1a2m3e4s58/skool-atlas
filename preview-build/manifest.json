@@ -2,21 +2,21 @@
   "date": "2026-10-20",
   "archives": [
     {
-      "sha256": "7d7444b98d6a1177ecd3f463dcda77e96c5cc7794147a54a65ea9324a2b5d749",
+      "sha256": "72a2b3d6ee4e30def5b6319000d6157de05208b691bee5a97572821c86f40cd4",
       "files": 63,
-      "bytes": 509859,
+      "bytes": 513471,
       "name": "source.zip"
     },
     {
-      "sha256": "45a754a3515747c7a1fc7b1e31b41dc767574f79b962cd382d3f1d4e6923e022",
+      "sha256": "53924c1883f69b22b7e5fcf4056eec0cc2234750f38c405c075f4e2808850624",
       "files": 199,
-      "bytes": 15552469,
+      "bytes": 15537932,
       "name": "assets-1.zip"
     },
     {
-      "sha256": "128fc027de4c643e95d667c4847df5a943277aa4d682c35f595689e53bff3d7a",
+      "sha256": "cdd85e8937b32f2185b2082b2b1394d14db3b9fd24ebd009accbc6ef4e3f5823",
       "files": 180,
-      "bytes": 12670160,
+      "bytes": 12672775,
       "name": "assets-2.zip"
     }
   ],
