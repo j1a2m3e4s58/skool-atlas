@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-20",
+  "archives": [
+    {
+      "sha256": "c1b2361d6399d233cd8b5da9787f64a5358ca89bf69ce4dbf3f8f64aa407294b",
+      "files": 63,
+      "bytes": 509645,
+      "name": "source.zip"
+    },
+    {
+      "sha256": "45a754a3515747c7a1fc7b1e31b41dc767574f79b962cd382d3f1d4e6923e022",
+      "files": 199,
+      "bytes": 15552469,
+      "name": "assets-1.zip"
+    },
+    {
+      "sha256": "128fc027de4c643e95d667c4847df5a943277aa4d682c35f595689e53bff3d7a",
+      "files": 180,
+      "bytes": 12670160,
+      "name": "assets-2.zip"
+    }
+  ],
+  "purpose": "Isolated Linux build of app source and public school assets; no credentials, accounts, database or Windows executables"
+}
