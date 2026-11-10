@@ -1,0 +1,79 @@
+name: Verified tertiary release build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['codex/tertiary-release-20261110']
+    paths: ['release-build/**', '.github/workflows/tertiary-release.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Check out build inputs
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify and unpack source-only inputs
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, zipfile
+          from pathlib import Path, PurePosixPath
+          root = Path.cwd()
+          app = Path(os.environ['RUNNER_TEMP']) / 'tertiary-release'
+          app.mkdir()
+          manifest = json.loads((root / 'release-build/manifest.json').read_text())
+          for record in manifest['archives']:
+              archive = root / 'release-build' / record['name']
+              if record.get('parts'):
+                  archive.write_bytes(b''.join((root / 'release-build' / part).read_bytes() for part in record['parts']))
+              assert hashlib.sha256(archive.read_bytes()).hexdigest() == record['sha256'], archive
+              with zipfile.ZipFile(archive) as z:
+                  for entry in z.infolist():
+                      path = PurePosixPath(entry.filename)
+                      assert not path.is_absolute() and '..' not in path.parts
+                      assert path.parts[0] in {'lib', 'test', 'web', 'assets', 'tools', 'data', 'reports', 'pubspec.yaml', 'pubspec.lock', 'analysis_options.yaml'}
+                      assert path.suffix.lower() not in {'.exe', '.dll', '.bat', '.cmd', '.msi'}
+                  z.extractall(app)
+          print('Verified source and public school assets; no Windows executables supplied.')
+          PY
+      - name: Install checksum-verified official Linux Flutter SDK
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 'https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.47.2-stable.tar.xz' -o "$RUNNER_TEMP/flutter.tar.xz"
+          echo '447878859d01ca9bfdb99a85f245af07ed8a15fedcd9d189c4749e8e92d1f185  '"$RUNNER_TEMP/flutter.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/flutter.tar.xz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+          find "$RUNNER_TEMP/flutter/bin/cache/dart-sdk" -type f -print0 | sort -z | xargs -0 sha256sum > "$RUNNER_TEMP/dart-sdk.sha256"
+      - name: Resolve locked packages
+        working-directory: ${{ runner.temp }}/tertiary-release
+        run: flutter pub get --enforce-lockfile
+      - name: Analyse updated app
+        working-directory: ${{ runner.temp }}/tertiary-release
+        run: flutter analyze
+      - name: Run widget and app regressions
+        working-directory: ${{ runner.temp }}/tertiary-release
+        run: flutter test --concurrency=1 --reporter expanded
+      - name: Build local-preview web files
+        working-directory: ${{ runner.temp }}/tertiary-release
+        run: |
+          flutter build web --no-pub --no-web-resources-cdn --no-wasm-dry-run --no-tree-shake-icons --target lib/main.dart
+          python3 tools/build_offline_manifest.py build/web
+          sha256sum --check --quiet "$RUNNER_TEMP/dart-sdk.sha256"
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          files = {str(p.relative_to('build/web')): hashlib.sha256(p.read_bytes()).hexdigest() for p in Path('build/web').rglob('*') if p.is_file()}
+          Path('build/web/build-provenance.json').write_text(json.dumps({'workflowCommit': os.environ['GITHUB_SHA'], 'runId': os.environ['GITHUB_RUN_ID'], 'flutter': '3.47.2', 'platform': 'Linux', 'files': files}, indent=2))
+          PY
+      - name: Save preview files (no deployment)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: tertiary-verified-web
+          path: ${{ runner.temp }}/tertiary-release/build/web/
+          retention-days: 7
+          if-no-files-found: error
