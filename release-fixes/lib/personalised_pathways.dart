@@ -289,7 +289,7 @@ MatchAssessment assessPathway(
       academicPass: true,
       route: base.route,
       cutoff: const CutoffAssessment(
-        'Predicted results Â· no confirmed cutoff match',
+        'Predicted results · no confirmed cutoff match',
         'Use final examination results for an actual cutoff comparison.',
       ),
     );
@@ -383,7 +383,7 @@ List<PathwayRecommendation> rankPathways(
         points += 3;
         reasons.add(
           rule.data['programmeRegions'] == null
-              ? 'Institution has a listed location in ${overlap.join(', ')}. Confirm this programmeâ€™s teaching campus.'
+              ? 'Institution has a listed location in ${overlap.join(', ')}. Confirm this programme’s teaching campus.'
               : 'This published route has a teaching location in ${overlap.join(', ')}. Confirm the stated campus.',
         );
       } else {
