@@ -76,6 +76,23 @@ void main() {
     }
   });
 
+  test('Language alternatives exclude transport substring matches', () {
+    final target = rule('ug-french', 'B.Ed. in French');
+    final french = rule('uds-french', 'BEd French');
+    final languages = rule('uds-languages', 'BEd Languages');
+    final transport = rule('atu-transport', 'BTech Logistics and Transport Management');
+    expect(programmeInterests(transport), isNot(contains('Arts & languages')));
+    expect(programmeInterests(rule('transportation', 'Transportation Engineering')),
+        isNot(contains('Arts & languages')));
+    for (final name in ['BSc Sport Science', 'BSc Sports Management']) {
+      expect(programmeInterests(rule(name, name)), contains('Arts & languages'));
+    }
+    expect(alternativeProgrammes(target, [
+      candidate(transport), candidate(french), candidate(languages),
+      candidate(rule('pending', 'BA French'), passes: false), candidate(french),
+    ]).map((r) => r.rule.id), ['uds-french', 'uds-languages']);
+  });
+
   test('Statistics alternatives require a passing relevant route and stay unique', () {
     final target = rule('ktu-statistics', 'BTech Statistics');
     final applied = rule('atu-statistics', 'BTech Applied Statistics');

@@ -196,7 +196,9 @@ Set<String> programmeInterests(AdmissionRule rule) => {
   if (RegExp(r'\bb\.?ed\b', caseSensitive: false).hasMatch(rule.programme))
     'Education',
   for (final entry in pathwayInterests.entries)
-    if (entry.value.any((word) => rule.programme.toLowerCase().contains(word)))
+    if (entry.value.any((word) => word == 'sport'
+        ? RegExp(r'\bsport', caseSensitive: false).hasMatch(rule.programme)
+        : rule.programme.toLowerCase().contains(word)))
       entry.key,
 };
 String programmeLevel(AdmissionRule rule) {
