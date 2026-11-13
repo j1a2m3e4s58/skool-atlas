@@ -1,6 +1,7 @@
 part of 'tertiary_data.dart';
 
 const pathwayInterests = <String, List<String>>{
+  'Statistics': ['statistics', 'statistical'],
   'Computing & data': [
     'computer',
     'computing',

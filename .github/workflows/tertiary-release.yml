@@ -75,6 +75,15 @@ jobs:
           files = {str(p.relative_to('build/web')): hashlib.sha256(p.read_bytes()).hexdigest() for p in Path('build/web').rglob('*') if p.is_file()}
           Path('build/web/build-provenance.json').write_text(json.dumps({'workflowCommit': os.environ['GITHUB_SHA'], 'runId': os.environ['GITHUB_RUN_ID'], 'flutter': '3.47.2', 'platform': 'Linux', 'files': files}, indent=2))
           PY
+      - name: Save tested runtime for small corrective releases
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: tertiary-verified-runtime
+          path: |
+            ${{ runner.temp }}/tertiary-release/build/web/main.dart.js
+            ${{ runner.temp }}/tertiary-release/build/web/build-provenance.json
+          retention-days: 7
+          if-no-files-found: error
       - name: Save preview files (no deployment)
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:

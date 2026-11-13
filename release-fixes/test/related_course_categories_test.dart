@@ -76,6 +76,19 @@ void main() {
     }
   });
 
+  test('Statistics alternatives require a passing relevant route and stay unique', () {
+    final target = rule('ktu-statistics', 'BTech Statistics');
+    final applied = rule('atu-statistics', 'BTech Applied Statistics');
+    final pending = rule('pending-statistics', 'BSc Mathematics with Statistics');
+    expect(alternativeProgrammes(target, [
+      candidate(target), candidate(pending, passes: false),
+      candidate(rule('computing', 'BSc Computer Science')),
+      candidate(applied), candidate(applied),
+    ]).map((r) => r.rule.id), ['atu-statistics']);
+    expect(programmeInterests(pending), contains('Statistics'));
+    expect(alternativeProgrammes(target, [candidate(applied, passes: false)]), isEmpty);
+  });
+
   test('Planning alternatives stay related, passing and unique', () {
     final target = rule('ucc', 'BSc Geography and Regional Planning');
     final degree = rule('uds', 'BSc Planning');
