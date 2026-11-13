@@ -32,6 +32,12 @@ const pathwayInterests = <String, List<String>>{
     'planning and sustainability',
   ],
   'Hospitality & tourism': ['hospitality', 'tourism', 'hotel management'],
+  'Media & communication': [
+    'journalism',
+    'mass communication',
+    'communication studies',
+    'public relations',
+  ],
   'Engineering': ['engineering'],
   'Education': ['education', 'b.ed', 'b.ed.'],
   'Business & law': [

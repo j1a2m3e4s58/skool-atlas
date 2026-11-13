@@ -53,6 +53,29 @@ void main() {
         isNot(contains('Hospitality & tourism')));
   });
 
+  test('Communication alternatives exclude technical and nonpassing routes', () {
+    final target = rule('ucc-media', 'BA Communication Studies');
+    final journalism = rule('acity-media', 'BA in Journalism & Mass Communication');
+    final publicRelations = rule('atu-media', 'BTech Public Relations with Digital Communication');
+    final pending = rule('knust-media', 'BA Media and Communication Studies');
+    expect(alternativeProgrammes(target, [
+      candidate(target, passes: false),
+      candidate(pending, passes: false),
+      candidate(rule('ict', 'BSc Information and Communication Technology')),
+      candidate(rule('engineering', 'BSc Electronics & Communication Engineering')),
+      candidate(journalism), candidate(publicRelations), candidate(journalism),
+    ]).map((r) => r.rule.id), ['acity-media', 'atu-media']);
+    expect(programmeInterests(pending), contains('Media & communication'));
+    expect(alternativeProgrammes(target, [
+      candidate(journalism, passes: false), candidate(publicRelations, passes: false),
+    ]), isEmpty);
+    for (final name in ['BSc Information and Communication Technology',
+      'BSc Electronics & Communication Engineering', 'BSc Telecommunication Engineering']) {
+      expect(programmeInterests(rule(name, name)),
+          isNot(contains('Media & communication')));
+    }
+  });
+
   test('Planning alternatives stay related, passing and unique', () {
     final target = rule('ucc', 'BSc Geography and Regional Planning');
     final degree = rule('uds', 'BSc Planning');
