@@ -43,7 +43,7 @@ void main() {
       final result = assessPathway(rule, {...grades, failed: 9}, now: now,
           hasAwaitingResults: true);
       expect(result.academicPass, isFalse);
-      expect(result.reasons.join(' '), contains('add or confirm $other at C6'));
+      expect(result.reasons.join(' '), contains('$other at C6'));
       expect(result.reasons.join(' '), contains('not assumed to pass'));
       final resolved = assessPathway(rule,
           {...grades, failed: 9, other: 6}, now: now);

@@ -217,7 +217,10 @@ MatchAssessment assessRule(
             alternatives.contains(s) &&
                     alternatives.every((subject) => grades[subject] == null)
                 ? alternatives.join(' OR ')
-                : s,
+                : alternatives.contains(s)
+                    ? '$s at ${gradeNames[limit - 1]} or better; an unentered '
+                        'or awaiting result is not assumed to pass'
+                    : s,
           );
         } else if (grades[s]! > limit) {
           final alternativesFailSameLimit = alternatives.contains(s) &&
