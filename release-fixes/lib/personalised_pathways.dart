@@ -23,6 +23,14 @@ const pathwayInterests = <String, List<String>>{
     'respiratory',
     'occupational therapy',
   ],
+  'Planning & development': [
+    'spatial planning',
+    'regional planning',
+    'urban planning',
+    'urban design',
+    'development planning',
+    'planning and sustainability',
+  ],
   'Hospitality & tourism': ['hospitality', 'tourism', 'hotel management'],
   'Engineering': ['engineering'],
   'Education': ['education', 'b.ed', 'b.ed.'],
@@ -175,6 +183,9 @@ class PathwayPreferences {
 }
 
 Set<String> programmeInterests(AdmissionRule rule) => {
+  if (RegExp(r'\b(?:b\.?sc\.?|bachelor of science(?: in)?)\s+planning\b',
+          caseSensitive: false).hasMatch(rule.programme))
+    'Planning & development',
   if (RegExp(r'\bb\.?ed\b', caseSensitive: false).hasMatch(rule.programme))
     'Education',
   for (final entry in pathwayInterests.entries)

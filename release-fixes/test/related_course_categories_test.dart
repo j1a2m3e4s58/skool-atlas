@@ -53,4 +53,23 @@ void main() {
         isNot(contains('Hospitality & tourism')));
   });
 
+  test('Planning alternatives stay related, passing and unique', () {
+    final target = rule('ucc', 'BSc Geography and Regional Planning');
+    final degree = rule('uds', 'BSc Planning');
+    final diploma = rule('ubids', 'Diploma in Integrated Urban Planning');
+    final failed = rule('failed', 'BSc Spatial Planning');
+    expect(alternativeProgrammes(target, [
+      candidate(target, passes: false), candidate(failed, passes: false),
+      candidate(rule('finance', 'BSc Financial Planning')),
+      candidate(degree), candidate(diploma), candidate(degree),
+    ]).map((r) => r.rule.id), ['uds', 'ubids']);
+    for (final name in ['BSc Planning', 'B.Sc. Planning',
+      'Bachelor of Science in Planning', 'BSc Planning and Sustainability',
+      'BSc Resource and Development Planning', 'BSc Urban Design and Planning']) {
+      expect(programmeInterests(rule(name, name)), contains('Planning & development'));
+    }
+    expect(programmeInterests(rule('other', 'BSc Financial Planning')),
+        isNot(contains('Planning & development')));
+  });
+
 }
