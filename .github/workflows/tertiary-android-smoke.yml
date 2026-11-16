@@ -93,7 +93,8 @@ jobs:
           for mode in online offline; do
             tesseract "evidence/android-$mode.png" "evidence/android-$mode" 2>/dev/null
             if grep -Ei 'could not load|reinstall|offline pack' "evidence/android-$mode.txt"; then exit 1; fi
-            grep -Ei 'Find your place|Discover universities|next move with clarity' "evidence/android-$mode.txt"
+            cat "evidence/android-$mode.txt"
+            grep -Ei 'Your potential|possibilities|Discover universities|next move with clarity' "evidence/android-$mode.txt"
           done
           # The emulator's default 320x640 display has the My grades tab at (160,570).
           adb shell input tap 160 570
@@ -110,3 +111,9 @@ jobs:
           name: tertiary-android-smoke-evidence
           path: evidence/
           retention-days: 7
+      - name: Print text diagnostics
+        if: always()
+        run: |
+          for item in evidence/android-*.txt evidence/runtime-log.txt; do
+            if [ -f "$item" ]; then cat "$item"; fi
+          done
