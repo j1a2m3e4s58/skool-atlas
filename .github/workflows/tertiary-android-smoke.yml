@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 50
     env:
       GH_TOKEN: ${{ github.token }}
-      SOURCE_RUN: '43869600573'
+      SOURCE_RUN: '43875478273'
     steps:
       - name: Wait for tested signed artifact
         run: |
@@ -31,7 +31,7 @@ jobs:
           from pathlib import Path
           import json,hashlib,zipfile,struct
           root=Path('signed'); p=json.loads((root/'provenance.json').read_text())
-          assert p['workflowCommit']=='fedc18915b8894ed55590a8b73c272769dd4504d'
+          assert p['workflowCommit']=='85d322e631bb6e2eebf6fb22b9eddf04a313eb28'
           for name,digest in p['files'].items():
               assert hashlib.sha256((root/name).read_bytes()).hexdigest()==digest,name
           lines=[]
@@ -55,6 +55,8 @@ jobs:
         run: |
           set -euo pipefail
           sudo setfacl -m u:runner:rw /dev/kvm
+          sudo apt-get update -qq
+          sudo apt-get install -y tesseract-ocr
           export ANDROID_AVD_HOME="$RUNNER_TEMP/atlas-avds"
           mkdir -p "$ANDROID_AVD_HOME"
           echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
@@ -88,7 +90,12 @@ jobs:
           adb shell pidof com.skoolatlas.app
           adb exec-out screencap -p > evidence/android-offline.png
           adb logcat -d -s AndroidRuntime flutter > evidence/runtime-log.txt
-          if grep -E 'FATAL EXCEPTION|Unhandled Exception' evidence/runtime-log.txt; then exit 1; fi
+          for mode in online offline; do
+            tesseract "evidence/android-$mode.png" "evidence/android-$mode" 2>/dev/null
+            if grep -Ei 'could not load|reinstall|offline pack' "evidence/android-$mode.txt"; then exit 1; fi
+            grep -Ei 'Find your place|Discover universities|next move with clarity' "evidence/android-$mode.txt"
+          done
+          if grep -E 'FATAL EXCEPTION|Unhandled Exception|while loading the offline catalogue|MissingPluginException|Unable to load asset' evidence/runtime-log.txt; then exit 1; fi
           echo 'Signed release installed and launched on API36 online and with network disabled. Physical-phone and interactive native grade checks are separate.' > evidence/summary.txt
       - name: Save native test evidence
         if: always()
