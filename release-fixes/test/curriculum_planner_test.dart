@@ -42,8 +42,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(store.newCurriculumGrades['Arts and Design Studio'], 0);
       final grade = find.byKey(const ValueKey('new-grade-Art and Design Foundation'));
-      await tester.ensureVisible(grade);
+      await Scrollable.ensureVisible(tester.element(grade), alignment: 0.5);
+      await tester.pumpAndSettle();
       await tester.tap(grade);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('F9').last);
       await tester.pumpAndSettle();
       await tester.tap(find.text('F9').last);
       await tester.pumpAndSettle();
