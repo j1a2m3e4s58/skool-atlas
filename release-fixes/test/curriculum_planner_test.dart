@@ -46,7 +46,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(grade);
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('F9').last);
+      await tester.scrollUntilVisible(find.text('F9'), 100, scrollable: find.byType(Scrollable).last);
       await tester.pumpAndSettle();
       await tester.tap(find.text('F9').last);
       await tester.pumpAndSettle();
