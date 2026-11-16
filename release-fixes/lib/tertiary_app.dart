@@ -781,29 +781,13 @@ class _TertiaryHomeState extends State<TertiaryHome>
               child: GlassPanel(
                 color: Colors.white.withValues(alpha: .84),
                 padding: const EdgeInsets.all(20),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    institutionLogo('gtec:881', size: 42),
-                    const SizedBox(width: 14),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'University of Ghana',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 17,
-                            ),
-                          ),
-                          Text(
-                            'Legon · Greater Accra',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
+                    Row(children: [
+                      institutionLogo('gtec:881', size: 42),
+                      const Spacer(),
+                      IconButton(
                       tooltip: 'Explore University of Ghana',
                       onPressed: () {
                         final matches = store.institutions.where(
@@ -812,7 +796,16 @@ class _TertiaryHomeState extends State<TertiaryHome>
                         if (matches.isNotEmpty) profile(matches.first);
                       },
                       icon: const Icon(Icons.north_east),
+                      ),
+                    ]),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'University of Ghana',
+                      key: ValueKey('hero-institution-name'),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
                     ),
+                    const SizedBox(height: 4),
+                    const Text('Legon · Greater Accra', style: TextStyle(fontSize: 12)),
                   ],
                 ),
               ),

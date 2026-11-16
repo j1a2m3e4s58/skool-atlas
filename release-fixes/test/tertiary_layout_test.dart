@@ -1,0 +1,68 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:skoolatlas/tertiary_data.dart';
+import 'package:skoolatlas/tertiary_app.dart';
+
+void main() {
+  final data =
+      jsonDecode(File('assets/tertiary/admissions.json').readAsStringSync())
+          as Map;
+  final rules = (data['rules'] as List)
+      .map((r) => AdmissionRule(Map<String, dynamic>.from(r as Map)))
+      .toList();
+  for (final width in [
+    320.0,
+    double.parse(Platform.environment['ATLAS_TERTIARY_LAYOUT_WIDTH'] ?? '390'),
+  ]) {
+    testWidgets('Tertiary discovery and grade form fit width $width', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      tester.view.physicalSize = Size(width, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final store = TertiaryStore()
+        ..rules = rules
+        ..institutions = [
+          const TertiaryInstitution(
+            id: 'gtec:fixture',
+            name: 'University of Ghana',
+            category: 'Traditional University',
+            location: 'Legon',
+            source: 'https://gtec.edu.gh/explore-institutions/',
+            checkedAt: '2026-10-25',
+            status: 'Active',
+            courses: ['BSc · Computer Science'],
+            listedActive: true,
+          ),
+          const TertiaryInstitution(
+            id: 'gtec:long-fixture',
+            name: 'Kwame Nkrumah University of Science and Technology',
+            category: 'Traditional University',
+            location: 'Kumasi',
+            source: 'https://gtec.edu.gh/explore-institutions/',
+            checkedAt: '2026-10-25',
+            status: 'Active',
+            courses: ['BSc · Civil Engineering'],
+            listedActive: true,
+          ),
+        ];
+      await tester.pumpWidget(TertiaryAtlasApp(store: store));
+      await tester.pumpAndSettle();
+      expect(find.text('TERTIARY ATLAS'), findsOneWidget);
+      final heroName = find.byKey(const ValueKey('hero-institution-name'));
+      expect(tester.getSize(heroName).width, greaterThan(150));
+      expect(tester.getSize(heroName).height, lessThan(55));
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text(width >= 850 ? 'Grade planner' : 'My grades'));
+      await tester.pumpAndSettle();
+      expect(find.text('A clearer path forward.'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+}
