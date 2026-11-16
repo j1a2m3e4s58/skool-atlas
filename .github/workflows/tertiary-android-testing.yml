@@ -70,7 +70,11 @@ jobs:
           export JAVA_HOME="$JAVA_HOME_17_X64"
           flutter config --jdk-dir "$JAVA_HOME"
           flutter config --android-sdk "$ANDROID_HOME"
+          cp pubspec.yaml "$RUNNER_TEMP/atlas-pubspec.yaml"
+          cp pubspec.lock "$RUNNER_TEMP/atlas-pubspec.lock"
           flutter create --platforms=android --org com.skoolatlas --project-name skoolatlas --no-pub .
+          cp "$RUNNER_TEMP/atlas-pubspec.yaml" pubspec.yaml
+          cp "$RUNNER_TEMP/atlas-pubspec.lock" pubspec.lock
           python3 - <<'PY'
           import base64,json,os
           from pathlib import Path, PurePosixPath
