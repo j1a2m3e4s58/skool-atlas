@@ -95,6 +95,12 @@ jobs:
             if grep -Ei 'could not load|reinstall|offline pack' "evidence/android-$mode.txt"; then exit 1; fi
             grep -Ei 'Find your place|Discover universities|next move with clarity' "evidence/android-$mode.txt"
           done
+          # The emulator's default 320x640 display has the My grades tab at (160,570).
+          adb shell input tap 160 570
+          sleep 3
+          adb exec-out screencap -p > evidence/android-grades-offline.png
+          tesseract evidence/android-grades-offline.png evidence/android-grades-offline 2>/dev/null
+          grep -Ei 'curriculum|WASSCE|subjects|pathways' evidence/android-grades-offline.txt
           if grep -E 'FATAL EXCEPTION|Unhandled Exception|while loading the offline catalogue|MissingPluginException|Unable to load asset' evidence/runtime-log.txt; then exit 1; fi
           echo 'Signed release installed and launched on API36 online and with network disabled. Physical-phone and interactive native grade checks are separate.' > evidence/summary.txt
       - name: Save native test evidence
