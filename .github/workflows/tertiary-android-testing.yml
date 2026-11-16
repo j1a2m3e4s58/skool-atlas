@@ -2,6 +2,9 @@ name: Signed Tertiary Atlas Android test release
 
 on:
   workflow_dispatch:
+  push:
+    branches: ['codex/tertiary-release-20261110']
+    paths: ['android-release/**', '.github/workflows/tertiary-android-testing.yml']
 
 permissions:
   contents: read
