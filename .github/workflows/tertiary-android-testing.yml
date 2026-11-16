@@ -82,6 +82,7 @@ jobs:
           generated=Path('android/app/src/main/kotlin/com/skoolatlas/skoolatlas/MainActivity.kt')
           if generated.exists(): generated.unlink()
           PY
+          flutter pub get --enforce-lockfile
       - name: Materialize owner upload signing key
         working-directory: ${{ runner.temp }}/tertiary-release
         env:

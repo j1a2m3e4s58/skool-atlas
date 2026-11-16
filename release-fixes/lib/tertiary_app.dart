@@ -192,7 +192,13 @@ class _TertiaryHomeState extends State<TertiaryHome>
       if (mounted) {
         timer = Timer.periodic(const Duration(minutes: 30), (_) => sync());
       }
-    } catch (_) {
+    } catch (error, stack) {
+      FlutterError.reportError(FlutterErrorDetails(
+        exception: error,
+        stack: stack,
+        library: 'Tertiary Atlas',
+        context: ErrorDescription('while loading the offline catalogue'),
+      ));
       if (mounted) {
         setState(
           () => loadError =
