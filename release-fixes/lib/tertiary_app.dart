@@ -4,6 +4,7 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'atlas_controls.dart';
 import 'curriculum_planner.dart';
+import 'atlas_privacy.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'tertiary_data.dart';
 import 'student_hub.dart';
@@ -1576,6 +1577,8 @@ class _TertiaryHomeState extends State<TertiaryHome>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               eyebrow('EVIDENCE BEFORE ASSUMPTIONS'),
+              const SizedBox(height: 12),
+              const AtlasPrivacyButton(),
               const SizedBox(height: 16),
               heading('Know what you’re\nplanning with.', 38),
               const SizedBox(height: 22),

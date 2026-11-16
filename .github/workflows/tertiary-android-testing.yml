@@ -102,8 +102,8 @@ jobs:
         working-directory: ${{ runner.temp }}/tertiary-release
         run: |
           set -euo pipefail
-          flutter build appbundle --release --no-pub --no-tree-shake-icons --build-number=2
-          flutter build apk --release --no-pub --no-tree-shake-icons --build-number=2 --target-platform android-arm,android-arm64,android-x64
+          flutter build appbundle --release --no-pub --no-tree-shake-icons --build-number=2 --dart-define=TERTIARY_FEED_URL=https://ghana-tertiary-atlas.ghana-tertiary-atlas-host.workers.dev/tertiary-feed.json
+          flutter build apk --release --no-pub --no-tree-shake-icons --build-number=2 --target-platform android-arm,android-arm64,android-x64 --dart-define=TERTIARY_FEED_URL=https://ghana-tertiary-atlas.ghana-tertiary-atlas-host.workers.dev/tertiary-feed.json
           sha256sum --check --quiet "$RUNNER_TEMP/dart-sdk.sha256"
           mkdir -p build/android-tested
           cp build/app/outputs/bundle/release/app-release.aab build/android-tested/tertiary-atlas-testing.aab
@@ -124,6 +124,12 @@ jobs:
           data={'runId':os.environ['GITHUB_RUN_ID'],'workflowCommit':os.environ['GITHUB_SHA'],'flutter':'3.47.2','kind':'Owner-signed testing release; not uploaded to Play','files':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in folder.iterdir() if p.is_file()}}
           (folder/'provenance.json').write_text(json.dumps(data,indent=2))
           PY
+      - name: Verify 16 KB packaging
+        working-directory: ${{ runner.temp }}/tertiary-release
+        run: |
+          set -euo pipefail
+          ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -name zipalign | sort -V | tail -n1)
+          "$ZIPALIGN" -c -P 16 -v 4 build/android-tested/tertiary-atlas-testing.apk > build/android-tested/zip-alignment.txt
       - name: Remove ephemeral signing material
         if: always()
         run: rm -f "$RUNNER_TEMP/atlas-upload.p12" "$RUNNER_TEMP/tertiary-release/android/key.properties"
