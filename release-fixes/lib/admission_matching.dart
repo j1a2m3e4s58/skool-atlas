@@ -260,7 +260,11 @@ MatchAssessment assessRule(
           );
         }
       }
-      final coreShortfalls = errors.length + missing.length;
+      // Prefer a satisfied alternative core without changing how distinct
+      // elective routes with their own compulsory-core limits are ranked.
+      final coreShortfalls = alternatives.isEmpty
+          ? 0
+          : errors.length + missing.length;
       final maxGrade = (route['maxGrade'] ?? 6) as int;
       final required = List<String>.from(route['required'] as List? ?? []);
       final countedRequired = List<String>.from(
