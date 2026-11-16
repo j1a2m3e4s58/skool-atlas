@@ -197,6 +197,7 @@ MatchAssessment assessRule(
   int? bestFailedAggregate;
   Map<String, int> bestFailedCounted = {};
   var bestFailedEnteredElectives = -1;
+  int? bestFailedCoreShortfalls;
   for (final countedCores in coreOptions) {
     final creditCores = List<String>.from(baseCores);
     if (alternatives.isNotEmpty) {
@@ -259,6 +260,7 @@ MatchAssessment assessRule(
           );
         }
       }
+      final coreShortfalls = errors.length + missing.length;
       final maxGrade = (route['maxGrade'] ?? 6) as int;
       final required = List<String>.from(route['required'] as List? ?? []);
       final countedRequired = List<String>.from(
@@ -406,14 +408,17 @@ MatchAssessment assessRule(
       }
       final score = errors.length + missing.length;
       if (bestErrors == null ||
-          score < bestErrors.length + bestMissing!.length ||
-          score == bestErrors.length + bestMissing.length &&
-              entered.length > bestFailedEnteredElectives) {
+          coreShortfalls < bestFailedCoreShortfalls! ||
+          coreShortfalls == bestFailedCoreShortfalls &&
+              (score < bestErrors.length + bestMissing!.length ||
+                  score == bestErrors.length + bestMissing.length &&
+                      entered.length > bestFailedEnteredElectives)) {
         bestErrors = errors;
         bestMissing = missing;
         bestFailedAggregate = sum;
         bestFailedCounted = failedCounted;
         bestFailedEnteredElectives = entered.length;
+        bestFailedCoreShortfalls = coreShortfalls;
       }
     }
   }

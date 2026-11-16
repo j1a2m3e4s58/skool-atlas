@@ -58,4 +58,24 @@ void main() {
     expect(result.aggregate, 36);
     expect(result.countedSubjects.containsKey('Integrated Science'), isFalse);
   });
+  test('Satisfied alternative core is not blamed for elective shortfalls', () {
+    final banking = store.rules.singleWhere((r) =>
+        r.institution == 'University for Development Studies' &&
+        r.programme == 'BSc Banking and Finance');
+    for (final candidate in [rule, banking]) {
+      for (final passing in ['Integrated Science', 'Social Studies']) {
+        final failed = passing == 'Integrated Science'
+            ? 'Social Studies' : 'Integrated Science';
+        final input = {'English Language': 6, 'Core Mathematics': 6,
+          passing: 2, failed: 7, 'Economics': 2, 'Geography': 6,
+          'History': 7, 'Biology': 7};
+        final result = assessPathway(candidate, input, now: now);
+        expect(result.status, 'Requirements not met');
+        expect(result.reasons.join(' '), contains('electives'));
+        expect(result.reasons.join(' '), isNot(contains('$failed needs')));
+        expect(assessPathway(candidate, {...input, 'History': 6}, now: now)
+            .academicPass, isTrue);
+      }
+    }
+  });
 }
