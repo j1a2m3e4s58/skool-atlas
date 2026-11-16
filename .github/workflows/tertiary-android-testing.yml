@@ -1,0 +1,133 @@
+name: Signed Tertiary Atlas Android test release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - name: Check out build inputs
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify and unpack source-only inputs
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, zipfile
+          from pathlib import Path, PurePosixPath
+          root = Path.cwd()
+          app = Path(os.environ['RUNNER_TEMP']) / 'tertiary-release'
+          app.mkdir()
+          manifest = json.loads((root / 'release-build/manifest.json').read_text())
+          for record in manifest['archives']:
+              archive = root / 'release-build' / record['name']
+              if record.get('parts'):
+                  archive.write_bytes(b''.join((root / 'release-build' / part).read_bytes() for part in record['parts']))
+              assert hashlib.sha256(archive.read_bytes()).hexdigest() == record['sha256'], archive
+              with zipfile.ZipFile(archive) as z:
+                  for entry in z.infolist():
+                      path = PurePosixPath(entry.filename)
+                      assert not path.is_absolute() and '..' not in path.parts
+                      assert path.parts[0] in {'lib', 'test', 'web', 'assets', 'tools', 'data', 'reports', 'pubspec.yaml', 'pubspec.lock', 'analysis_options.yaml'}
+                      assert path.suffix.lower() not in {'.exe', '.dll', '.bat', '.cmd', '.msi'}
+                  z.extractall(app)
+          import shutil
+          for patch in (root / 'release-fixes').rglob('*.dart'):
+              target = app / patch.relative_to(root / 'release-fixes')
+              target.parent.mkdir(parents=True, exist_ok=True)
+              shutil.copyfile(patch, target)
+          print('Verified source and public school assets; no Windows executables supplied.')
+          PY
+      - name: Install checksum-verified official Linux Flutter SDK
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 'https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.47.2-stable.tar.xz' -o "$RUNNER_TEMP/flutter.tar.xz"
+          echo '447878859d01ca9bfdb99a85f245af07ed8a15fedcd9d189c4749e8e92d1f185  '"$RUNNER_TEMP/flutter.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/flutter.tar.xz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+          find "$RUNNER_TEMP/flutter/bin/cache/dart-sdk" -type f -print0 | sort -z | xargs -0 sha256sum > "$RUNNER_TEMP/dart-sdk.sha256"
+      - name: Resolve locked packages
+        working-directory: ${{ runner.temp }}/tertiary-release
+        run: flutter pub get --enforce-lockfile
+      - name: Analyse updated app
+        working-directory: ${{ runner.temp }}/tertiary-release
+        run: flutter analyze
+      - name: Run widget and app regressions
+        working-directory: ${{ runner.temp }}/tertiary-release
+        run: flutter test --exclude-tags legacy_shs --concurrency=1 --reporter expanded
+      - name: Prepare Android platform from verified SDK
+        working-directory: ${{ runner.temp }}/tertiary-release
+        run: |
+          set -euo pipefail
+          export JAVA_HOME="$JAVA_HOME_17_X64"
+          flutter config --jdk-dir "$JAVA_HOME"
+          flutter config --android-sdk "$ANDROID_HOME"
+          flutter create --platforms=android --org com.skoolatlas --project-name skoolatlas --no-pub .
+          python3 - <<'PY'
+          import base64,json,os
+          from pathlib import Path, PurePosixPath
+          for rel, encoded in json.loads((Path(os.environ['GITHUB_WORKSPACE'])/'android-release/native-input.json').read_text()).items():
+              assert not PurePosixPath(rel).is_absolute() and '..' not in PurePosixPath(rel).parts
+              p=Path('android')/rel
+              p.parent.mkdir(parents=True,exist_ok=True)
+              p.write_bytes(base64.b64decode(encoded))
+          generated=Path('android/app/src/main/kotlin/com/skoolatlas/skoolatlas/MainActivity.kt')
+          if generated.exists(): generated.unlink()
+          PY
+      - name: Materialize owner upload signing key
+        working-directory: ${{ runner.temp }}/tertiary-release
+        env:
+          KEYSTORE_B64: ${{ secrets.ATLAS_ANDROID_KEYSTORE }}
+          KEY_PASSWORD: ${{ secrets.ATLAS_ANDROID_PASSWORD }}
+        run: |
+          python3 - <<'PY'
+          import os,base64
+          from pathlib import Path
+          assert os.environ['KEYSTORE_B64'] and os.environ['KEY_PASSWORD'], 'Owner signing secrets required'
+          key=Path(os.environ['RUNNER_TEMP'])/'atlas-upload.p12'
+          key.write_bytes(base64.b64decode(os.environ['KEYSTORE_B64']))
+          key.chmod(0o600)
+          password=os.environ['KEY_PASSWORD']
+          Path('android/key.properties').write_text(f'storeFile={key}\nstorePassword={password}\nkeyPassword={password}\nkeyAlias=atlas-upload\n')
+          PY
+      - name: Build signed Android test artifacts
+        working-directory: ${{ runner.temp }}/tertiary-release
+        run: |
+          set -euo pipefail
+          flutter build appbundle --release --no-pub --no-tree-shake-icons --build-number=2
+          flutter build apk --release --no-pub --no-tree-shake-icons --build-number=2 --target-platform android-arm,android-arm64,android-x64
+          sha256sum --check --quiet "$RUNNER_TEMP/dart-sdk.sha256"
+          mkdir -p build/android-tested
+          cp build/app/outputs/bundle/release/app-release.aab build/android-tested/tertiary-atlas-testing.aab
+          cp build/app/outputs/flutter-apk/app-release.apk build/android-tested/tertiary-atlas-testing.apk
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -n1)
+          "$APKSIGNER" verify --verbose --print-certs build/android-tested/tertiary-atlas-testing.apk > build/android-tested/apk-signature.txt
+          "$JAVA_HOME_17_X64/bin/jarsigner" -verify build/android-tested/tertiary-atlas-testing.aab > build/android-tested/bundle-signature.txt
+          grep -q 'jar verified' build/android-tested/bundle-signature.txt
+          AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt | sort -V | tail -n1)
+          "$AAPT" dump badging build/android-tested/tertiary-atlas-testing.apk > build/android-tested/android-manifest.txt
+          grep -q "application-label:'Tertiary Atlas'" build/android-tested/android-manifest.txt
+          grep -q "targetSdkVersion:'36'" build/android-tested/android-manifest.txt
+          grep -q "name='com.skoolatlas.app'" build/android-tested/android-manifest.txt
+          python3 - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          folder=Path('build/android-tested')
+          data={'runId':os.environ['GITHUB_RUN_ID'],'workflowCommit':os.environ['GITHUB_SHA'],'flutter':'3.47.2','kind':'Owner-signed testing release; not uploaded to Play','files':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in folder.iterdir() if p.is_file()}}
+          (folder/'provenance.json').write_text(json.dumps(data,indent=2))
+          PY
+      - name: Remove ephemeral signing material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/atlas-upload.p12" "$RUNNER_TEMP/tertiary-release/android/key.properties"
+      - name: Save signed test artifacts (no Play upload)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: tertiary-atlas-android-testing
+          path: ${{ runner.temp }}/tertiary-release/build/android-tested/
+          retention-days: 7
+          if-no-files-found: error
