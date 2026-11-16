@@ -29,11 +29,19 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import json,hashlib,zipfile,struct
+          import json,hashlib,zipfile,struct,subprocess,shutil
           root=Path('signed'); p=json.loads((root/'provenance.json').read_text())
           assert p['workflowCommit']=='83bfbfc24be07687fa6428614c70a7ed4a53937d'
           for name,digest in p['files'].items():
               assert hashlib.sha256((root/name).read_bytes()).hexdigest()==digest,name
+          expected='330bb2dff055b2d24feae9c56190aff00186c7b2aa6ab5199cdf51d7c9a7f509'
+          assert expected in (root/'apk-signature.txt').read_text().replace(':','').lower()
+          with zipfile.ZipFile(root/'tertiary-atlas-testing.aab') as bundle:
+              names=[n for n in bundle.namelist() if n.startswith('META-INF/') and n.endswith('.RSA')]
+              assert len(names)==1
+              pem=subprocess.run(['openssl','pkcs7','-inform','DER','-print_certs'],input=bundle.read(names[0]),capture_output=True,check=True).stdout
+              der=subprocess.run(['openssl','x509','-outform','DER'],input=pem,capture_output=True,check=True).stdout
+              assert hashlib.sha256(der).hexdigest()==expected
           lines=[]
           with zipfile.ZipFile(root/'tertiary-atlas-testing.apk') as z:
               for name in z.namelist():
@@ -49,6 +57,9 @@ jobs:
                   lines.append(name+' PASS: PT_LOAD alignment >=16KB')
           assert lines
           Path('evidence').mkdir()
+          for name in ['provenance.json','apk-signature.txt','bundle-signature.txt','android-manifest.txt','zip-alignment.txt']:
+              shutil.copyfile(root/name,Path('evidence')/name)
+          Path('evidence/owner-signing-check.txt').write_text('APK and AAB match owner certificate SHA256: '+expected)
           Path('evidence/elf-alignment.txt').write_text('\n'.join(lines))
           PY
       - name: Install Android 16 emulator
