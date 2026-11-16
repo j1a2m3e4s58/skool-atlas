@@ -1,0 +1,92 @@
+name: Verify signed Android testing artifact
+on:
+  push:
+    branches: ['codex/tertiary-release-20261110']
+    paths: ['.github/workflows/tertiary-android-smoke.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SOURCE_RUN: '43869600573'
+    steps:
+      - name: Wait for tested signed artifact
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 100); do
+            state=$(gh run view "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --json status --jq .status)
+            if [ "$state" = completed ]; then break; fi
+            sleep 15
+          done
+          result=$(gh run view "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --json conclusion --jq .conclusion)
+          test "$result" = success
+          gh run download "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --name tertiary-atlas-android-testing --dir signed
+      - name: Verify hashes and native ELF alignment
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,hashlib,zipfile,struct
+          root=Path('signed'); p=json.loads((root/'provenance.json').read_text())
+          assert p['workflowCommit']=='fedc18915b8894ed55590a8b73c272769dd4504d'
+          for name,digest in p['files'].items():
+              assert hashlib.sha256((root/name).read_bytes()).hexdigest()==digest,name
+          lines=[]
+          with zipfile.ZipFile(root/'tertiary-atlas-testing.apk') as z:
+              for name in z.namelist():
+                  if not name.endswith('.so') or not any(abi in name for abi in ['arm64-v8a','x86_64']): continue
+                  b=z.read(name)
+                  assert b[:5]==b'\x7fELF\x02',name
+                  endian='<' if b[5]==1 else '>'
+                  offset=struct.unpack_from(endian+'Q',b,32)[0]
+                  size,count=struct.unpack_from(endian+'HH',b,54)
+                  for i in range(count):
+                      fields=struct.unpack_from(endian+'IIQQQQQQ',b,offset+i*size)
+                      if fields[0]==1: assert fields[7]>=16384,(name,fields[7])
+                  lines.append(name+' PASS: PT_LOAD alignment >=16KB')
+          assert lines
+          Path('evidence').mkdir()
+          Path('evidence/elf-alignment.txt').write_text('\n'.join(lines))
+          PY
+      - name: Install Android 16 emulator
+        run: |
+          set -euo pipefail
+          sudo setfacl -m u:runner:rw /dev/kvm
+          SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager | head -n1)
+          AVDMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -name avdmanager | head -n1)
+          "$SDKMANAGER" 'system-images;android-36;google_apis;x86_64' 'emulator'
+          echo no | "$AVDMANAGER" create avd -n atlas-test -k 'system-images;android-36;google_apis;x86_64' --force
+          "$ANDROID_HOME/emulator/emulator" -avd atlas-test -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect > evidence/emulator.log 2>&1 &
+          adb wait-for-device
+          timeout 240 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 3; done'
+          adb shell input keyevent 82
+      - name: Install and launch signed release online and offline
+        run: |
+          set -euo pipefail
+          adb install signed/tertiary-atlas-testing.apk
+          adb logcat -c
+          adb shell am start -W -n com.skoolatlas.app/.MainActivity > evidence/online-launch.txt
+          sleep 25
+          adb shell pidof com.skoolatlas.app
+          adb shell dumpsys activity activities > evidence/online-activity.txt
+          adb exec-out screencap -p > evidence/android-online.png
+          adb shell am force-stop com.skoolatlas.app
+          adb shell svc wifi disable
+          adb shell svc data disable
+          adb shell am start -W -n com.skoolatlas.app/.MainActivity > evidence/offline-launch.txt
+          sleep 25
+          adb shell pidof com.skoolatlas.app
+          adb exec-out screencap -p > evidence/android-offline.png
+          adb logcat -d -s AndroidRuntime flutter > evidence/runtime-log.txt
+          if grep -E 'FATAL EXCEPTION|Unhandled Exception' evidence/runtime-log.txt; then exit 1; fi
+          echo 'Signed release installed and launched on API36 online and with network disabled. Physical-phone and interactive native grade checks are separate.' > evidence/summary.txt
+      - name: Save native test evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: tertiary-android-smoke-evidence
+          path: evidence/
+          retention-days: 7
