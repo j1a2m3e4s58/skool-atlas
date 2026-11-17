@@ -162,6 +162,7 @@ class TertiaryStore {
   PathwayPreferences preferences = const PathwayPreferences();
   String? preferencesStorageError;
   Map<String, dynamic> sourceMonitor = {};
+  Map<String, String> siteContent = {};
   List<TertiaryInstitution> institutions = [];
   List<AdmissionRule> rules = [];
   Map<String, dynamic> media = {};
@@ -229,6 +230,16 @@ class TertiaryStore {
   }
 
   void applyFeed(Map<String, dynamic> feed) {
+    final content = <String, String>{};
+    if (feed['siteContent'] != null) {
+      if (feed['siteContent'] is! Map) throw const FormatException('Invalid site content');
+      for (final entry in (feed['siteContent'] as Map).entries) {
+        if (entry.key is! String || entry.value is! String || (entry.value as String).length > 2000) {
+          throw const FormatException('Invalid site content field');
+        }
+        content[entry.key as String] = entry.value as String;
+      }
+    }
     if (![2, 3, 4, 5].contains(feed['schemaVersion']) ||
         feed['rules'] is! List) {
       throw const FormatException('Unsupported feed');
@@ -376,6 +387,7 @@ class TertiaryStore {
     }
     if (cutoffUpdate != null) cutoffs = cutoffUpdate;
     if (resourceUpdate != null) journey.resources = resourceUpdate;
+    siteContent = content;
   }
 
   String? ruleInstitutionId(AdmissionRule rule) {

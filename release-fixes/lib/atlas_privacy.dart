@@ -23,7 +23,8 @@ You can use bundled information offline. Online updates and external links requi
 ''';
 
 class AtlasPrivacyButton extends StatelessWidget {
-  const AtlasPrivacyButton({super.key});
+  final String email;
+  const AtlasPrivacyButton({super.key, this.email = atlasSupportEmail});
 
   @override
   Widget build(BuildContext context) => OutlinedButton.icon(
@@ -33,9 +34,9 @@ class AtlasPrivacyButton extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Privacy & support'),
-        content: const SizedBox(
+        content: SizedBox(
           width: 620,
-          child: SingleChildScrollView(child: SelectableText(atlasPrivacyText)),
+          child: SingleChildScrollView(child: SelectableText(atlasPrivacyText.replaceAll(atlasSupportEmail, email))),
         ),
         actions: [TextButton(
           onPressed: () => Navigator.pop(context),

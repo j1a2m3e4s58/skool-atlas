@@ -329,7 +329,14 @@ class _TertiaryHomeState extends State<TertiaryHome>
                 ),
                 child: Row(
                   children: [
-                    const AtlasMark(),
+                    Semantics(
+                      label: 'Tertiary Atlas. Long press for owner administration.',
+                      child: GestureDetector(
+                        key: const ValueKey('admin-logo-entry'),
+                        onLongPress: openAdmin,
+                        child: const AtlasMark(),
+                      ),
+                    ),
                     const SizedBox(width: 12),
                     const Expanded(
                       child: Column(
@@ -657,6 +664,16 @@ class _TertiaryHomeState extends State<TertiaryHome>
       color: gold,
     ),
   );
+  String content(String key, String fallback) => store.siteContent[key] ?? fallback;
+  Future<void> openAdmin() async {
+    final uri = kIsWeb
+        ? Uri.base.resolve('/admin')
+        : Uri.parse('https://ghana-tertiary-atlas.ghana-tertiary-atlas-host.workers.dev/admin');
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication, webOnlyWindowName: '_self');
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open secure administration. Connect to the internet and try again.')));
+    }
+  }
   Widget heading(String text, double size) => Text(
     text,
     style: TextStyle(
@@ -679,15 +696,15 @@ class _TertiaryHomeState extends State<TertiaryHome>
       child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        eyebrow('AMBITION HAS A DESTINATION.'),
+        eyebrow(content('homeEyebrow', 'AMBITION HAS A DESTINATION.')),
         const SizedBox(height: 18),
-        heading('Your potential.\nA world of possibilities.', wide ? 52 : 36),
+        heading(content('homeTitle', 'Your potential.\nA world of possibilities.'), wide ? 52 : 36),
         const SizedBox(height: 18),
-        const SizedBox(
+        SizedBox(
           width: 430,
           child: Text(
-            'Discover universities, colleges and creative pathways across Ghana. Make your next move with clarity.',
-            style: TextStyle(
+            content('homeIntro', 'Discover universities, colleges and creative pathways across Ghana. Make your next move with clarity.'),
+            style: const TextStyle(
               fontSize: 16,
               color: Color(0xFF5E7268),
               height: 1.7,
@@ -702,13 +719,13 @@ class _TertiaryHomeState extends State<TertiaryHome>
               style: FilledButton.styleFrom(minimumSize: const Size(0, 52)),
               onPressed: () => navigate(1),
               icon: const Icon(Icons.north_east, size: 17),
-              label: const Text('Explore institutions'),
+              label: Text(content('primaryActionLabel', 'Explore institutions')),
             ),
             const SizedBox(height: 10),
             OutlinedButton.icon(
               onPressed: () => navigate(2),
               icon: const Icon(Icons.tune, size: 18),
-              label: const Text('Find my pathway'),
+              label: Text(content('secondaryActionLabel', 'Find my pathway')),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(0, 52),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -717,6 +734,10 @@ class _TertiaryHomeState extends State<TertiaryHome>
           ],
         ),
         const SizedBox(height: 20),
+        if (content('announcement', '').isNotEmpty) ...[
+          Text(content('announcement', ''), style: const TextStyle(height: 1.6)),
+          const SizedBox(height: 16),
+        ],
         const Divider(height: 1, color: Color(0xFFDCE5DB)),
         const SizedBox(height: 16),
         const Row(
@@ -936,7 +957,7 @@ class _TertiaryHomeState extends State<TertiaryHome>
       children: [
         eyebrow('EXPLORE BY LOCATION'),
         const SizedBox(height: 12),
-        heading('Across all 16 regions', 26),
+        heading(content('regionHeading', 'Across all 16 regions'), 26),
         const SizedBox(height: 10),
         Text(
           '${store.institutions.length} institution profiles. Choose a region to see its full directory.',
@@ -1616,7 +1637,7 @@ class _TertiaryHomeState extends State<TertiaryHome>
             children: [
               eyebrow('EVIDENCE BEFORE ASSUMPTIONS'),
               const SizedBox(height: 12),
-              const AtlasPrivacyButton(),
+              AtlasPrivacyButton(email: content('supportEmail', atlasSupportEmail)),
               const SizedBox(height: 16),
               heading('Know what you’re\nplanning with.', 38),
               const SizedBox(height: 22),
