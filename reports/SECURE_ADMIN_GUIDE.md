@@ -32,10 +32,10 @@ Keep Cloudflare owner access and the password manager recovery method secure. A 
 
 ## Mobile layout update
 
-Home Explore institutions and Find my pathway actions have equal widths and stay horizontal on phones. Paired actions in institution details, grade checking, pathway results, journey management, reminders, update reviews and offline tools use the same wrapping-label layout. The owner login and change-password dialog buttons have equal widths and heights. Widget tests cover 320px, 390px and desktop layouts, plus enlarged text. The secure admin route bypasses offline caching.
+Home Explore institutions and Find my pathway actions now stack at full width on phones, following the supplied reference image. Paired actions in institution details, grade checking, pathway results, journey management, reminders, update reviews and offline tools use the same wrapping-label layout. The owner login and change-password actions also stack at full width on phones. Widget tests cover 320px, 390px and desktop layouts, plus enlarged text. The secure admin route bypasses offline caching.
 
 Cloudflare release: 15161bf3-1afa-4e94-a88a-f899a76a6efb. Published content remains unchanged; the admin owner account is configured and requires its first password change.
 
 Native verification: signed Android version 5, build 44087824588, emulator run 44087914086. Upgrade from version 4, Android 16 online/offline launch, bundled catalogue, grade-page opening, owner-signature and 16KB native alignment checks passed. The 320px native screenshot also shows the home buttons side by side. Physical Android/iPhone testing and interactive native grade-entry testing remain separate.
 
-Live Chrome phone checks passed at 320px and 390px: aligned equal-width home buttons, pathway navigation, touch long press to owner login, equal-width centred login actions, and no page errors.
+Live Chrome phone checks passed at 320px and 390px: the previous horizontal layout, pathway navigation and touch long press to owner login. See the stacked-actions release report for the subsequent layout change.
