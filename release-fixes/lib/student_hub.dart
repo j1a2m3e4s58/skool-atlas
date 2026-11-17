@@ -1309,8 +1309,7 @@ OutlinedButton(
           Text('Previously: ${change['before'] ?? 'Not recorded'}'),
           Text('Now: ${change['after'] ?? 'Not recorded'}'),
         ],
-        Wrap(
-          spacing: 8,
+        AtlasActionRow(
           children: [
             TextButton(
               onPressed: () => link(u['sourceUrl']),

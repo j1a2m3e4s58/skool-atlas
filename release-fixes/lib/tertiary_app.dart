@@ -1615,6 +1615,7 @@ class _TertiaryHomeState extends State<TertiaryHome>
                     const SizedBox(height: 12),
                     Text(store.syncMessage),
                     const SizedBox(height: 14),
+                    AtlasActionRow(children: [
                     FilledButton.icon(
                       onPressed: syncing ? null : sync,
                       icon: const Icon(Icons.sync),
@@ -1628,6 +1629,7 @@ class _TertiaryHomeState extends State<TertiaryHome>
                         icon: const Icon(Icons.download_for_offline_outlined),
                         label: const Text('Manage offline download'),
                       ),
+                    ]),
                     const SizedBox(height: 14),
                     const Text(
                       'The catalogue and academic rules are saved for offline access after the initial download. On web, photographs load as you browse; use Manage offline download to save all available images, preferably on Wi-Fi. External admissions links require internet. This app checks its hosted feed on opening, resuming and every 30 minutes. Hosted checks scan every monitored source every 15 minutes. Changes pause affected checks until reviewed. Revised rules, new admission-year pages, institutions and photographs need a reviewed publication; new wording is never automatically treated as an admission requirement. Grades stay in memory; saved institutions stay on this device.',
