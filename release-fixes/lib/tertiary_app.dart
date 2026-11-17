@@ -636,7 +636,7 @@ class _TertiaryHomeState extends State<TertiaryHome>
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.account_balance_outlined),
-                  label: 'Institutions',
+                  label: 'Schools',
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.tune),
@@ -950,7 +950,7 @@ class _TertiaryHomeState extends State<TertiaryHome>
         LayoutBuilder(
           builder: (context, constraints) {
             final regions = store.institutions.expand((i) => i.regions).toSet().toList()..sort();
-            final columns = constraints.maxWidth >= 900 ? 4 : constraints.maxWidth >= 560 ? 3 : 2;
+            final columns = constraints.maxWidth >= 900 ? 4 : constraints.maxWidth >= 600 ? 2 : 1;
             final tileWidth = (constraints.maxWidth - 12 * (columns - 1)) / columns;
             final tileHeight = 106.0 + (MediaQuery.textScalerOf(context).scale(14) - 14) * 4;
             return Wrap(
@@ -1593,7 +1593,7 @@ class _TertiaryHomeState extends State<TertiaryHome>
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               eyebrow('EVIDENCE BEFORE ASSUMPTIONS'),
               const SizedBox(height: 12),
@@ -1695,9 +1695,7 @@ class _TertiaryHomeState extends State<TertiaryHome>
                 'Every region is searchable. Missing media is explicitly labelled and never replaced with another school’s photograph or crest. Counts below include multi-region institutions in each relevant region.',
               ),
               const SizedBox(height: 14),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
+              AtlasPanelGrid(
                 children: [
                   for (final region
                       in (store.institutions
@@ -1705,29 +1703,30 @@ class _TertiaryHomeState extends State<TertiaryHome>
                           .toSet()
                           .toList()
                         ..sort()))
-                    SizedBox(
-                      width: 220,
-                      child: GlassPanel(
-                        padding: const EdgeInsets.all(14),
+                    GlassPanel(
+                        key: ValueKey('source-region-$region'),
+                        padding: const EdgeInsets.all(20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               region,
                               style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700, fontSize: 16,
                               ),
                             ),
+                            const SizedBox(height: 8),
                             Text(
                               '${store.institutions.where((i) => i.regions.contains(region)).length} profiles',
+                              style: const TextStyle(fontSize: 15, height: 1.5),
                             ),
+                            const SizedBox(height: 4),
                             Text(
                               '${store.institutions.where((i) => i.regions.contains(region) && (store.media[i.id] as Map?)?["asset"] is String).length} photos · ${store.institutions.where((i) => i.regions.contains(region) && (store.media[i.id] as Map?)?["logo"] is Map).length} logos',
-                              style: const TextStyle(fontSize: 11),
+                              style: const TextStyle(fontSize: 13, height: 1.5, color: Color(0xFF5E7268)),
                             ),
                           ],
                         ),
-                      ),
                     ),
                 ],
               ),
@@ -1852,7 +1851,7 @@ class _GradePlannerState extends State<LegacyGradePlanner> {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
                   'YOUR RESULTS. YOUR POSSIBILITIES.',

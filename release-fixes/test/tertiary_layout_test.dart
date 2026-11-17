@@ -89,7 +89,12 @@ void main() {
       final ahafo = find.byKey(const ValueKey('home-region-Ahafo'));
       final ashanti = find.byKey(const ValueKey('home-region-Ashanti'));
       expect(tester.getSize(ahafo), tester.getSize(ashanti));
-      expect(tester.getTopLeft(ahafo).dy, tester.getTopLeft(ashanti).dy);
+      if (width < 600) {
+        expect(tester.getTopLeft(ashanti).dy, greaterThan(tester.getBottomLeft(ahafo).dy));
+        expect(tester.getSize(ahafo).width, greaterThan(width * .65));
+      } else {
+        expect(tester.getTopLeft(ahafo).dy, tester.getTopLeft(ashanti).dy);
+      }
       final westernNorth = find.byKey(const ValueKey('home-region-Western North'));
       expect(westernNorth, findsOneWidget);
       await tester.ensureVisible(westernNorth);
@@ -101,6 +106,27 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('A clearer path forward.'), findsOneWidget);
       expect(tester.takeException(), isNull);
+      await tester.tap(find.text('Sources').last);
+      await tester.pumpAndSettle();
+      final sourceAhafo = find.byKey(const ValueKey('source-region-Ahafo'));
+      final sourceAshanti = find.byKey(const ValueKey('source-region-Ashanti'));
+      expect(sourceAhafo, findsOneWidget);
+      expect(tester.getSize(sourceAhafo).width, tester.getSize(sourceAshanti).width);
+      if (width < 600) {
+        expect(tester.getSize(sourceAhafo).width, closeTo(width - 48, 1));
+        expect(tester.getTopLeft(sourceAshanti).dy, greaterThan(tester.getBottomLeft(sourceAhafo).dy));
+      }
+      expect(find.byKey(const ValueKey('source-region-Western North')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text('My journey').last);
+      await tester.pumpAndSettle();
+      for (final section in ['Compare', 'Costs & scholarships', 'Galleries', 'Updates']) {
+        final chip = find.text(section).first;
+        await tester.ensureVisible(chip);
+        await tester.tap(chip);
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull, reason: '$section at $width');
+      }
       await tester.pumpWidget(const SizedBox.shrink());
     });
   }

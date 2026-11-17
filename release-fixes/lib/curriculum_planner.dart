@@ -86,7 +86,7 @@ class _NewCurriculumPlannerState extends State<NewCurriculumPlanner> {
         constraints: const BoxConstraints(maxWidth: 900),
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Text('Your new-curriculum subjects',
                 style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 12),

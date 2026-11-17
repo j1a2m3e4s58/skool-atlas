@@ -347,3 +347,17 @@ class AtlasActionRow extends StatelessWidget {
     );
   });
 }
+
+/// Uses the available panel width, with one readable column on phones.
+class AtlasPanelGrid extends StatelessWidget {
+  final List<Widget> children;
+  const AtlasPanelGrid({super.key, required this.children});
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
+    final columns = box.maxWidth < 600 ? 1 : (box.maxWidth / 300).floor().clamp(1, 3);
+    final width = (box.maxWidth - 16 * (columns - 1)) / columns;
+    return Wrap(spacing: 16, runSpacing: 16, children: [
+      for (final child in children) SizedBox(width: width, child: child),
+    ]);
+  });
+}

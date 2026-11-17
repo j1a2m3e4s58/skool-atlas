@@ -80,7 +80,7 @@ class _StudentHubState extends State<StudentHub> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
                 'YOUR NEXT CHAPTER',
@@ -893,37 +893,20 @@ OutlinedButton(
         'Select up to four tracked programmes. Unknown requirements, fees and duration stay visible as unknown. Swipe the table sideways on a phone.',
       ),
       const SizedBox(height: 12),
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (final a in journey.applications)
-            FilterChip(
-              label: SizedBox(
-                width: 225,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      a.programme,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      schoolName(a.institutionId),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 11),
-                    ),
-                  ],
-                ),
-              ),
-              selected: journey.comparison.contains(a.id),
-              onSelected: (_) => action(() => journey.compare(a.id)),
+      AtlasPanelGrid(children: [
+        for (final a in journey.applications)
+          GlassPanel(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.trailing,
+              title: Text(a.programme, style: const TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: Text(schoolName(a.institutionId), style: const TextStyle(height: 1.5)),
+              value: journey.comparison.contains(a.id),
+              onChanged: (_) => action(() => journey.compare(a.id)),
             ),
-        ],
-      ),
+          ),
+      ]),
       if (journey.applications.isEmpty)
         TextButton(
           onPressed: addProgramme,
