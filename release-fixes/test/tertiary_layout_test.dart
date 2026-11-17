@@ -5,8 +5,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skoolatlas/tertiary_data.dart';
 import 'package:skoolatlas/tertiary_app.dart';
+import 'package:skoolatlas/atlas_controls.dart';
 
 void main() {
+  testWidgets('Action pairs remain horizontal with larger phone text', (tester) async {
+    tester.view.physicalSize = const Size(320, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(MaterialApp(home: MediaQuery(
+      data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+      child: Scaffold(body: Padding(padding: const EdgeInsets.all(24), child: AtlasActionRow(children: [
+        FilledButton.icon(key: const ValueKey('pair-first'), onPressed: () {}, icon: const Icon(Icons.search), label: const Text('Explore institutions')),
+        OutlinedButton.icon(key: const ValueKey('pair-second'), onPressed: () {}, icon: const Icon(Icons.tune), label: const Text('Find my pathway')),
+      ]))),
+    )));
+    await tester.pumpAndSettle();
+    final first = find.byKey(const ValueKey('pair-first'));
+    final second = find.byKey(const ValueKey('pair-second'));
+    expect(tester.getTopLeft(first).dy, tester.getTopLeft(second).dy);
+    expect(tester.getSize(first), tester.getSize(second));
+    expect(tester.takeException(), isNull);
+  });
+
   final data =
       jsonDecode(File('assets/tertiary/admissions.json').readAsStringSync())
           as Map;
