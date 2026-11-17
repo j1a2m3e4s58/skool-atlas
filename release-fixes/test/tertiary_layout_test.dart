@@ -8,7 +8,7 @@ import 'package:skoolatlas/tertiary_app.dart';
 import 'package:skoolatlas/atlas_controls.dart';
 
 void main() {
-  testWidgets('Action pairs remain horizontal with larger phone text', (tester) async {
+  testWidgets('Mobile actions stack without squeezing larger phone text', (tester) async {
     tester.view.physicalSize = const Size(320, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -23,8 +23,8 @@ void main() {
     await tester.pumpAndSettle();
     final first = find.byKey(const ValueKey('pair-first'));
     final second = find.byKey(const ValueKey('pair-second'));
-    expect(tester.getTopLeft(first).dy, tester.getTopLeft(second).dy);
-    expect(tester.getSize(first), tester.getSize(second));
+    expect(tester.getTopLeft(second).dy, greaterThan(tester.getBottomLeft(first).dy));
+    expect(tester.getSize(first).width, tester.getSize(second).width);
     expect(tester.takeException(), isNull);
   });
 
@@ -79,8 +79,8 @@ void main() {
       expect(find.text('TERTIARY ATLAS'), findsOneWidget);
       final explore = find.byKey(const ValueKey('home-explore-action'));
       final pathway = find.byKey(const ValueKey('home-pathway-action'));
-      expect(tester.getTopLeft(explore).dy, tester.getTopLeft(pathway).dy);
-      expect(tester.getSize(explore), tester.getSize(pathway));
+      expect(tester.getTopLeft(pathway).dy, greaterThan(tester.getBottomLeft(explore).dy));
+      expect(tester.getSize(explore).width, tester.getSize(pathway).width);
       expect(tester.getSize(explore).height, greaterThanOrEqualTo(48));
       final heroName = find.byKey(const ValueKey('hero-institution-name'));
       expect(tester.getSize(heroName).width, greaterThan(150));

@@ -306,33 +306,33 @@ class _AtlasDisclosureState extends State<AtlasDisclosure> {
   );
 }
 
-/// Equal-width mobile action pairs with readable, wrapping labels.
+/// Full-width mobile actions with comfortable labels and consistent spacing.
 class AtlasActionRow extends StatelessWidget {
   final List<Widget> children;
   const AtlasActionRow({super.key, required this.children});
   @override
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
     final compact = box.maxWidth < 560;
-    final columns = compact ? 2 : (children.length > 4 ? 4 : children.length);
+    final columns = compact ? 1 : (children.length > 4 ? 4 : children.length);
     final style = ButtonStyle(
-      minimumSize: const WidgetStatePropertyAll(Size(0, 52)),
-      padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: compact ? 8 : 14, vertical: 12)),
-      textStyle: WidgetStatePropertyAll(TextStyle(fontSize: compact ? 12 : 14, fontWeight: FontWeight.w600)),
-      iconSize: const WidgetStatePropertyAll(16),
+      minimumSize: const WidgetStatePropertyAll(Size(0, 60)),
+      padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 18, vertical: 16)),
+      textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+      iconSize: const WidgetStatePropertyAll(18),
       alignment: Alignment.center,
       shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
     );
     return FilledButtonTheme(
       data: FilledButtonThemeData(style: style),
       child: OutlinedButtonTheme(
-        data: OutlinedButtonThemeData(style: style),
+        data: OutlinedButtonThemeData(style: style.copyWith(shape: const WidgetStatePropertyAll(StadiumBorder()))),
         child: TextButtonTheme(
           data: TextButtonThemeData(style: style),
           child: DefaultTextStyle.merge(
             textAlign: TextAlign.center,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               for (var start = 0; start < children.length; start += columns) ...[
-                if (start > 0) const SizedBox(height: 10),
+                if (start > 0) const SizedBox(height: 12),
                 IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   for (var index = start; index < start + columns && index < children.length; index++) ...[
                     if (index > start) const SizedBox(width: 10),
