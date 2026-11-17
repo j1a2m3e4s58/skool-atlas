@@ -316,8 +316,8 @@ class AtlasActionRow extends StatelessWidget {
     final columns = compact ? 1 : (children.length > 4 ? 4 : children.length);
     final style = ButtonStyle(
       minimumSize: const WidgetStatePropertyAll(Size(0, 60)),
-      padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 18, vertical: 16)),
-      textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+      padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 18, vertical: 16)),
+      textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
       iconSize: const WidgetStatePropertyAll(18),
       alignment: Alignment.center,
       shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
