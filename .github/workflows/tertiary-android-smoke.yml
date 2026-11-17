@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 50
     env:
       GH_TOKEN: ${{ github.token }}
-      SOURCE_RUN: '43891333391'
+      SOURCE_RUN: '44071884040'
     steps:
       - name: Wait for tested signed artifact
         run: |
@@ -25,13 +25,14 @@ jobs:
           result=$(gh run view "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --json conclusion --jq .conclusion)
           test "$result" = success
           gh run download "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --name tertiary-atlas-android-testing --dir signed
+          gh run download 43891333391 --repo "$GITHUB_REPOSITORY" --name tertiary-atlas-android-testing --dir previous
       - name: Verify hashes and native ELF alignment
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import json,hashlib,zipfile,struct,subprocess,shutil
           root=Path('signed'); p=json.loads((root/'provenance.json').read_text())
-          assert p['workflowCommit']=='83bfbfc24be07687fa6428614c70a7ed4a53937d'
+          assert p['workflowCommit']=='315d2109cd2ddcfdf6e457de1335c66d4742e3bd'
           for name,digest in p['files'].items():
               assert hashlib.sha256((root/name).read_bytes()).hexdigest()==digest,name
           expected='330bb2dff055b2d24feae9c56190aff00186c7b2aa6ab5199cdf51d7c9a7f509'
@@ -86,7 +87,8 @@ jobs:
       - name: Install and launch signed release online and offline
         run: |
           set -euo pipefail
-          adb install signed/tertiary-atlas-testing.apk
+          adb install previous/tertiary-atlas-testing.apk
+          adb install -r signed/tertiary-atlas-testing.apk
           adb logcat -c
           adb shell am start -W -n com.skoolatlas.app/.MainActivity > evidence/online-launch.txt
           sleep 25
@@ -105,8 +107,20 @@ jobs:
             tesseract "evidence/android-$mode.png" "evidence/android-$mode" 2>/dev/null
             if grep -Ei 'could not load|reinstall|offline pack' "evidence/android-$mode.txt"; then exit 1; fi
             cat "evidence/android-$mode.txt"
-            grep -Ei 'Your potential|possibilities|Discover universities|next move with clarity' "evidence/android-$mode.txt"
+            grep -Ei 'University of Ghana|Your potential|possibilities|Discover universities|next move with clarity' "evidence/android-$mode.txt"
           done
+          found=0
+          for position in $(seq 1 10); do
+            adb shell input swipe 160 490 160 240 350
+            sleep 1
+            adb exec-out screencap -p > "evidence/home-scroll-$position.png"
+            tesseract "evidence/home-scroll-$position.png" "evidence/home-scroll-$position" 2>/dev/null
+            if grep -Ei 'Across all 16' "evidence/home-scroll-$position.txt"; then found=1; break; fi
+          done
+          test "$found" = 1
+          adb shell input swipe 160 490 160 240 350
+          sleep 1
+          adb exec-out screencap -p > evidence/android-region-grid.png
           # The emulator's default 320x640 display has the My grades tab at (160,570).
           adb shell input tap 160 570
           sleep 3
