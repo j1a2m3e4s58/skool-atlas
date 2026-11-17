@@ -120,7 +120,7 @@ void main() {
       expect(tester.takeException(), isNull);
       await tester.tap(find.text('My journey').last);
       await tester.pumpAndSettle();
-      for (final section in ['Compare', 'Costs & scholarships', 'Galleries', 'Updates']) {
+      for (final section in ['Compare', 'Costs & scholarships', 'Galleries', 'Updates', 'Funding match', 'Campus life', 'Careers & licences', 'Evidence coverage']) {
         final chip = find.text(section).first;
         await tester.ensureVisible(chip);
         await tester.tap(chip);
