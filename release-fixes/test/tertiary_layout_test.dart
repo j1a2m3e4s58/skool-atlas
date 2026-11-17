@@ -15,6 +15,7 @@ void main() {
       .toList();
   for (final width in [
     320.0,
+    1280.0,
     double.parse(Platform.environment['ATLAS_TERTIARY_LAYOUT_WIDTH'] ?? '390'),
   ]) {
     testWidgets('Tertiary discovery and grade form fit width $width', (
@@ -33,6 +34,7 @@ void main() {
             name: 'University of Ghana',
             category: 'Traditional University',
             location: 'Legon',
+            regions: ['Ahafo', 'Ashanti', 'Bono', 'Bono East', 'Central', 'Eastern', 'Greater Accra', 'North East', 'Northern', 'Oti', 'Savannah', 'Upper East', 'Upper West', 'Volta', 'Western', 'Western North'],
             source: 'https://gtec.edu.gh/explore-institutions/',
             checkedAt: '2026-10-25',
             status: 'Active',
@@ -57,6 +59,17 @@ void main() {
       final heroName = find.byKey(const ValueKey('hero-institution-name'));
       expect(tester.getSize(heroName).width, greaterThan(150));
       expect(tester.getSize(heroName).height, lessThan(55));
+      expect(tester.takeException(), isNull);
+      final ahafo = find.byKey(const ValueKey('home-region-Ahafo'));
+      final ashanti = find.byKey(const ValueKey('home-region-Ashanti'));
+      expect(tester.getSize(ahafo), tester.getSize(ashanti));
+      expect(tester.getTopLeft(ahafo).dy, tester.getTopLeft(ashanti).dy);
+      final westernNorth = find.byKey(const ValueKey('home-region-Western North'));
+      expect(westernNorth, findsOneWidget);
+      await tester.ensureVisible(westernNorth);
+      await tester.tap(westernNorth);
+      await tester.pumpAndSettle();
+      expect(find.text('Find your place.'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.tap(find.text(width >= 850 ? 'Grade planner' : 'My grades'));
       await tester.pumpAndSettle();

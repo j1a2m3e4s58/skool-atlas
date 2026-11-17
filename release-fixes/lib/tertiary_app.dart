@@ -446,7 +446,7 @@ class _TertiaryHomeState extends State<TertiaryHome>
                                     const SizedBox(height: 28),
                                   ],
                                   if (page == 0) ...[
-                                    const SizedBox(height: 24),
+                                    const SizedBox(height: 32),
                                     regionOverview(),
                                     const SizedBox(height: 36),
                                     Row(
@@ -669,13 +669,20 @@ class _TertiaryHomeState extends State<TertiaryHome>
     ),
   );
   Widget hero(bool wide) {
-    final left = Column(
+    final left = Container(
+      padding: EdgeInsets.all(wide ? 32 : 24),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: .72),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFDCE5DB)),
+      ),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         eyebrow('AMBITION HAS A DESTINATION.'),
-        const SizedBox(height: 22),
-        heading('Your potential.\nA world of\npossibilities.', wide ? 65 : 43),
-        const SizedBox(height: 22),
+        const SizedBox(height: 18),
+        heading('Your potential.\nA world of possibilities.', wide ? 52 : 36),
+        const SizedBox(height: 18),
         const SizedBox(
           width: 430,
           child: Text(
@@ -687,30 +694,31 @@ class _TertiaryHomeState extends State<TertiaryHome>
             ),
           ),
         ),
-        const SizedBox(height: 26),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
+        const SizedBox(height: 24),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             FilledButton.icon(
+              style: FilledButton.styleFrom(minimumSize: const Size(0, 52)),
               onPressed: () => navigate(1),
               icon: const Icon(Icons.north_east, size: 17),
               label: const Text('Explore institutions'),
             ),
+            const SizedBox(height: 10),
             OutlinedButton.icon(
               onPressed: () => navigate(2),
               icon: const Icon(Icons.tune, size: 18),
               label: const Text('Find my pathway'),
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 22,
-                  vertical: 20,
-                ),
+                minimumSize: const Size(0, 52),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 20),
+        const Divider(height: 1, color: Color(0xFFDCE5DB)),
+        const SizedBox(height: 16),
         const Row(
           children: [
             Icon(Icons.offline_pin_outlined, size: 17, color: ink),
@@ -724,6 +732,7 @@ class _TertiaryHomeState extends State<TertiaryHome>
           ],
         ),
       ],
+      ),
     );
     final photo = ClipRRect(
       borderRadius: BorderRadius.circular(24),
@@ -815,14 +824,14 @@ class _TertiaryHomeState extends State<TertiaryHome>
       ),
     );
     return wide
-        ? Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+        ? IntrinsicHeight(child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(child: left),
-              const SizedBox(width: 36),
+              const SizedBox(width: 24),
               Expanded(child: photo),
             ],
-          )
+          ))
         : Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [photo, const SizedBox(height: 24), left],
@@ -921,37 +930,67 @@ class _TertiaryHomeState extends State<TertiaryHome>
   }
 
   Widget regionOverview() => GlassPanel(
-    padding: const EdgeInsets.all(22),
+    padding: const EdgeInsets.all(24),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        eyebrow('EXPLORE BY LOCATION'),
+        const SizedBox(height: 12),
         heading('Across all 16 regions', 26),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         Text(
           '${store.institutions.length} institution profiles. Choose a region to see its full directory.',
+          style: const TextStyle(fontSize: 14, height: 1.6, color: Color(0xFF5E7268)),
         ),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final region
-                in (store.institutions.expand((i) => i.regions).toSet().toList()
-                  ..sort()))
-              ActionChip(
-                label: Text(
-                  '$region · ${store.institutions.where((i) => i.regions.contains(region)).length}',
-                  style: const TextStyle(fontSize: 12),
-                ),
-                onPressed: () => setState(() {
-                  location = region;
-                  group = 'All institutions';
-                  search.clear();
-                  showInactive = true;
-                  page = 1;
-                }),
-              ),
-          ],
+        const SizedBox(height: 24),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final regions = store.institutions.expand((i) => i.regions).toSet().toList()..sort();
+            final columns = constraints.maxWidth >= 900 ? 4 : constraints.maxWidth >= 560 ? 3 : 2;
+            final tileWidth = (constraints.maxWidth - 12 * (columns - 1)) / columns;
+            final tileHeight = 106.0 + (MediaQuery.textScalerOf(context).scale(14) - 14) * 4;
+            return Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                for (final region in regions)
+                  SizedBox(
+                    key: ValueKey('home-region-$region'),
+                    width: tileWidth,
+                    height: tileHeight,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.all(12),
+                        backgroundColor: Colors.white.withValues(alpha: .85),
+                        side: const BorderSide(color: Color(0xFFD6E0D5)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        alignment: Alignment.centerLeft,
+                      ),
+                      onPressed: () => setState(() {
+                        location = region;
+                        group = 'All institutions';
+                        search.clear();
+                        showInactive = true;
+                        page = 1;
+                      }),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: Text(region, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, height: 1.25))),
+                          Row(children: [
+                            Expanded(child: Text(
+                              '${store.institutions.where((i) => i.regions.contains(region)).length} profiles',
+                              style: const TextStyle(fontSize: 11, color: Color(0xFF61766C)),
+                            )),
+                            const Icon(Icons.north_east, size: 14),
+                          ]),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ],
     ),
