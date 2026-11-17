@@ -20,7 +20,7 @@ void main() {
   test(
     'four CSU programme records validate without changing institution identity',
     () {
-      expect(s.rules, hasLength(599));
+      expect(s.rules, hasLength(600));
       expect(
         s.rules.where((r) => r.data['scope'] == 'programme'),
         hasLength(542),

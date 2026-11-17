@@ -73,7 +73,7 @@ void main() {
   test(
     'six unique source-backed programmes validate across Upper West and Northern',
     () {
-      expect(store.rules, hasLength(599));
+      expect(store.rules, hasLength(600));
       expect(added, hasLength(6));
       expect(
         store.rules.where((r) => r.data['scope'] == 'programme'),

@@ -27,7 +27,7 @@ void main() {
   test(
     '20 unique programme records retain evidence, scope and correct institution identity',
     () {
-      expect(store.rules, hasLength(599));
+      expect(store.rules, hasLength(600));
     expect(rule('presby-mathematics').data['programme'], 'BSc Mathematics with Statistics');
       expect(
         store.rules.where((r) => r.data['scope'] == 'programme'),

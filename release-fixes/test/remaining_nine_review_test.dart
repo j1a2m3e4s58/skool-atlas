@@ -26,7 +26,7 @@ void main() {
                 ).readAsStringSync(),
               )['rules']
               as List);
-      expect(store.rules, hasLength(599));
+      expect(store.rules, hasLength(600));
       for (final r in store.rules.where(
         (r) => before.any((o) => o['id'] == r.id),
       )) {

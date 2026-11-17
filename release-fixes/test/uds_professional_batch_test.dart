@@ -28,7 +28,7 @@ void main() {
   test(
     'six source-backed unique records preserve intake and route distinctions',
     () {
-      expect(store.rules, hasLength(599));
+      expect(store.rules, hasLength(600));
       for (final id in ids) {
         final r = rule(id);
         expect(() => validateAdmissionRule(r), returnsNormally);

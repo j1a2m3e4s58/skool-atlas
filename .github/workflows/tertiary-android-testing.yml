@@ -49,6 +49,7 @@ jobs:
           admissions = gzip.decompress(base64.b64decode(reviewed['gzipBase64']))
           assert hashlib.sha256(admissions).hexdigest() == reviewed['sha256']
           rows = json.loads(admissions)['rules']
+          assert len(rows) == reviewed['recordCount']
           assert not any(r['id']=='national-20261027-central-it' for r in rows)
           assert next(r for r in rows if r['id']=='private-20261028-central-it')['status']=='needs_source_review'
           (app/'assets/tertiary/admissions.json').write_bytes(admissions)

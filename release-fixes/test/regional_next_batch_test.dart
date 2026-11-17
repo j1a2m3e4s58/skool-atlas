@@ -51,7 +51,7 @@ void main() {
     () {
       expect(added, hasLength(8));
       expect(computing, hasLength(7));
-      expect(store.rules, hasLength(599));
+      expect(store.rules, hasLength(600));
       for (final r in added) {
         expect(() => validateAdmissionRule(r), returnsNormally);
         expect(r.data['scope'], 'programme');

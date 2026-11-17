@@ -57,7 +57,7 @@ void main() {
   test(
     'six social and humanities records validate with unique identity and evidence',
     () {
-      expect(store.rules, hasLength(599));
+      expect(store.rules, hasLength(600));
       expect(
         store.rules.where((r) => r.data['scope'] == 'programme'),
         hasLength(542),

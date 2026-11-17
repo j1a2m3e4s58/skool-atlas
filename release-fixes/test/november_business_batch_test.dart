@@ -19,7 +19,7 @@ void main() {
   test(
     'six unique City Campus programmes validate with frozen evidence and dated closed-intake warning',
     () {
-      expect(store.rules, hasLength(599));
+      expect(store.rules, hasLength(600));
       expect(rules, hasLength(6));
       expect(
         store.rules.where((r) => r.data['scope'] == 'programme'),

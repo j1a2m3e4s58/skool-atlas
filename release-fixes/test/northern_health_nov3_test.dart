@@ -28,7 +28,7 @@ void main() {
   test(
     'three unique Northern health programmes validate with frozen evidence',
     () {
-      expect(store.rules, hasLength(599));
+      expect(store.rules, hasLength(600));
       expect(added, hasLength(3));
       expect(
         store.rules.where((r) => r.data['scope'] == 'programme'),

@@ -27,7 +27,7 @@ void main() {
   test(
     '35 distinct reviewed records validate without inventing programme coverage',
     () {
-      expect(store.rules, hasLength(599));
+      expect(store.rules, hasLength(600));
       final added = store.rules
           .where((r) => r.id.startsWith('technical-20261028-'))
           .toList();
@@ -41,7 +41,7 @@ void main() {
         added.where((r) => r.data['status'] == 'needs_source_review'),
         hasLength(3),
       );
-      expect({for (final r in store.rules) r.id}, hasLength(599));
+      expect({for (final r in store.rules) r.id}, hasLength(600));
       for (final r in store.rules) {
         expect(() => validateAdmissionRule(r), returnsNormally, reason: r.id);
       }

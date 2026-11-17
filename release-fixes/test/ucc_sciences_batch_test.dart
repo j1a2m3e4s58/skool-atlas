@@ -25,7 +25,7 @@ void main() {
   };
 
   test('six unique UCC programme rules validate and retain their evidence', () {
-    expect(store.rules, hasLength(599));
+    expect(store.rules, hasLength(600));
     expect(
       store.rules.where((r) => r.data['scope'] == 'programme'),
       hasLength(542),

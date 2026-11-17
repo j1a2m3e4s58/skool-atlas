@@ -35,7 +35,7 @@ void main() {
   test(
     'six GCTU routes validate with their own faculty sources and dated intake',
     () {
-      expect(store.rules, hasLength(599));
+      expect(store.rules, hasLength(600));
       expect(
         store.rules.where((r) => r.data['scope'] == 'programme'),
         hasLength(542),

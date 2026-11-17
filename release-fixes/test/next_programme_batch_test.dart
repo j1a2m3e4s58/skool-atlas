@@ -19,7 +19,7 @@ void main() {
   test(
     'second batch is unique, fully validated, versioned and limited to reviewed sources',
     () {
-      expect(store.rules, hasLength(599));
+      expect(store.rules, hasLength(600));
       expect(
         store.rules.where((r) => r.data['scope'] == 'programme'),
         hasLength(542),
