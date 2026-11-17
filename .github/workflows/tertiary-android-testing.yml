@@ -44,7 +44,15 @@ jobs:
               target = app / patch.relative_to(root / 'release-fixes')
               target.parent.mkdir(parents=True, exist_ok=True)
               shutil.copyfile(patch, target)
-          print('Verified source and public school assets; no Windows executables supplied.')
+          import base64, gzip
+          reviewed = json.loads((root/'android-release/admissions-input.json').read_text())
+          admissions = gzip.decompress(base64.b64decode(reviewed['gzipBase64']))
+          assert hashlib.sha256(admissions).hexdigest() == reviewed['sha256']
+          rows = json.loads(admissions)['rules']
+          assert not any(r['id']=='national-20261027-central-it' for r in rows)
+          assert next(r for r in rows if r['id']=='private-20261028-central-it')['status']=='needs_source_review'
+          (app/'assets/tertiary/admissions.json').write_bytes(admissions)
+          print('Verified source and current reviewed admissions; Central IT remains pending without its duplicate.')
           PY
       - name: Install checksum-verified official Linux Flutter SDK
         run: |
@@ -107,8 +115,8 @@ jobs:
         working-directory: ${{ runner.temp }}/tertiary-release
         run: |
           set -euo pipefail
-          flutter build appbundle --release --no-tree-shake-icons --build-number=3 --dart-define=TERTIARY_FEED_URL=https://ghana-tertiary-atlas.ghana-tertiary-atlas-host.workers.dev/tertiary-feed.json
-          flutter build apk --release --no-tree-shake-icons --build-number=3 --target-platform android-arm,android-arm64,android-x64 --dart-define=TERTIARY_FEED_URL=https://ghana-tertiary-atlas.ghana-tertiary-atlas-host.workers.dev/tertiary-feed.json
+          flutter build appbundle --release --no-tree-shake-icons --build-number=4 --dart-define=TERTIARY_FEED_URL=https://ghana-tertiary-atlas.ghana-tertiary-atlas-host.workers.dev/tertiary-feed.json
+          flutter build apk --release --no-tree-shake-icons --build-number=4 --target-platform android-arm,android-arm64,android-x64 --dart-define=TERTIARY_FEED_URL=https://ghana-tertiary-atlas.ghana-tertiary-atlas-host.workers.dev/tertiary-feed.json
           sha256sum --check --quiet "$RUNNER_TEMP/dart-sdk.sha256"
           mkdir -p build/android-tested
           cp build/app/outputs/bundle/release/app-release.aab build/android-tested/tertiary-atlas-testing.aab
