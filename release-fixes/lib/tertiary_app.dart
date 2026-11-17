@@ -737,7 +737,7 @@ class _TertiaryHomeState extends State<TertiaryHome>
     final photo = ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: SizedBox(
-        height: wide ? 444 : 300,
+        height: wide ? 480 : 300,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -824,14 +824,14 @@ class _TertiaryHomeState extends State<TertiaryHome>
       ),
     );
     return wide
-        ? IntrinsicHeight(child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(child: left),
               const SizedBox(width: 24),
               Expanded(child: photo),
             ],
-          ))
+          )
         : Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [photo, const SizedBox(height: 24), left],
