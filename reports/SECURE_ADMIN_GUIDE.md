@@ -2,7 +2,7 @@
 
 Open the top-left logo with a long press, or visit https://ghana-tertiary-atlas.ghana-tertiary-atlas-host.workers.dev/admin.
 
-Initial credentials are stored separately in E:\Atlas-Admin-Keys\START-HERE.txt. Never commit, upload or share that folder. The first sign-in requires a new password. Subsequent password changes require the current password and invalidate every session. There is no public registration or email-reset service.
+Initial credentials are stored separately in E:\Atlas-Admin-Keys\START-HERE.txt. Never commit, upload or share that folder. Sign in using only the owner password; no email is requested. The first sign-in requires a new password. Subsequent password changes require the current password and invalidate every session. There is no public registration or email-reset service.
 
 ## Editing and publishing
 
@@ -27,7 +27,7 @@ Keep Cloudflare owner access and the password manager recovery method secure. A 
 
 ## Tests
 
-2026-11-17: 130 Node server tests passed; 463 Flutter tests passed, two existing skips; Flutter analysis passed in verified Linux build 44087693004, commit 7672ece80f1d7011b2e2110b5780f803107c6df3. Isolated real Chrome checks cover setup, mandatory password change, wrong old password, re-login, private drafts, preview, publication, pending admissions editing, read-only record viewing, undo, mobile overflow and browser errors. Production writes during verification are limited to owner account setup, login and logout; no demonstration content was published.
+2026-11-17: 131 Node server tests passed; 463 Flutter tests passed, two existing skips; Flutter analysis passed in verified Linux build 44087693004, commit 7672ece80f1d7011b2e2110b5780f803107c6df3. Isolated real Chrome checks cover setup, mandatory password change, wrong old password, re-login, private drafts, preview, publication, pending admissions editing, read-only record viewing, undo, mobile overflow and browser errors. Production writes during verification are limited to owner account setup, login and logout; no demonstration content was published.
 
 
 ## Mobile layout update
