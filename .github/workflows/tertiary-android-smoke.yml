@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 50
     env:
       GH_TOKEN: ${{ github.token }}
-      SOURCE_RUN: '44093290428'
+      SOURCE_RUN: '44105109705'
     steps:
       - name: Wait for tested signed artifact
         run: |
@@ -25,14 +25,14 @@ jobs:
           result=$(gh run view "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --json conclusion --jq .conclusion)
           test "$result" = success
           gh run download "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --name tertiary-atlas-android-testing --dir signed
-          gh run download 44087824588 --repo "$GITHUB_REPOSITORY" --name tertiary-atlas-android-testing --dir previous
+          gh run download 44093290428 --repo "$GITHUB_REPOSITORY" --name tertiary-atlas-android-testing --dir previous
       - name: Verify hashes and native ELF alignment
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import json,hashlib,zipfile,struct,subprocess,shutil
           root=Path('signed'); p=json.loads((root/'provenance.json').read_text())
-          assert p['workflowCommit']=='56ea817461fbdc78f9c7d97a290f3140dc3b9c8f'
+          assert p['workflowCommit']=='7b508701290c15b1aaf96c5c2a613660618c24f4'
           for name,digest in p['files'].items():
               assert hashlib.sha256((root/name).read_bytes()).hexdigest()==digest,name
           expected='330bb2dff055b2d24feae9c56190aff00186c7b2aa6ab5199cdf51d7c9a7f509'
@@ -127,6 +127,20 @@ jobs:
           adb exec-out screencap -p > evidence/android-grades-offline.png
           tesseract evidence/android-grades-offline.png evidence/android-grades-offline 2>/dev/null
           grep -Ei 'curriculum|WASSCE|subjects|pathways' evidence/android-grades-offline.txt
+          adb shell input tap 288 570
+          sleep 3
+          found=0
+          for position in $(seq 1 20); do
+            adb exec-out screencap -p > evidence/android-source-regions.png
+            tesseract evidence/android-source-regions.png evidence/android-source-regions 2>/dev/null
+            if grep -Ei 'Ahafo|Ashanti' evidence/android-source-regions.txt; then found=1; break; fi
+            adb shell input swipe 160 490 160 240 350
+            sleep 1
+          done
+          test "$found" = 1
+          adb shell input swipe 160 420 160 280 350
+          sleep 1
+          adb exec-out screencap -p > evidence/android-source-regions-detail.png
           if grep -E 'FATAL EXCEPTION|Unhandled Exception|while loading the offline catalogue|MissingPluginException|Unable to load asset' evidence/runtime-log.txt; then exit 1; fi
           echo 'Signed release installed and launched on API36 online and with network disabled. Physical-phone and interactive native grade checks are separate.' > evidence/summary.txt
       - name: Save native test evidence
