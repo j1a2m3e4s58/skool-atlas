@@ -104,11 +104,9 @@ class _StudentHubState extends State<StudentHub> {
                   journey.storageError!,
                   style: const TextStyle(color: Colors.red),
                 ),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  FilledButton.icon(
+              AtlasActionRow(
+ children: [
+FilledButton.icon(
                     onPressed: journey.storageError == null
                         ? addProgramme
                         : null,
@@ -471,11 +469,9 @@ class _StudentHubState extends State<StudentHub> {
           'Opt in on this device. The server stores only random identifiers, reminder dates and a push subscription. Grades, programme names, notes and budgets stay here. Turn reminders off here to remove that server record.',
           style: TextStyle(fontSize: 12),
         ),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            FilledButton.tonalIcon(
+        AtlasActionRow(
+ children: [
+FilledButton.tonalIcon(
               onPressed: reminderBusy || journey.reminderPayload() == '[]'
                   ? null
                   : () async {
@@ -545,11 +541,9 @@ class _StudentHubState extends State<StudentHub> {
           ),
           const SizedBox(height: 12),
           if (a.note.isNotEmpty) Text(a.note),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              OutlinedButton(
+          AtlasActionRow(
+ children: [
+OutlinedButton(
                 onPressed: () => editApplication(a),
                 child: const Text('Manage application'),
               ),

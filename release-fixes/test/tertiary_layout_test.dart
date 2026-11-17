@@ -56,6 +56,11 @@ void main() {
       await tester.pumpWidget(TertiaryAtlasApp(store: store));
       await tester.pumpAndSettle();
       expect(find.text('TERTIARY ATLAS'), findsOneWidget);
+      final explore = find.byKey(const ValueKey('home-explore-action'));
+      final pathway = find.byKey(const ValueKey('home-pathway-action'));
+      expect(tester.getTopLeft(explore).dy, tester.getTopLeft(pathway).dy);
+      expect(tester.getSize(explore), tester.getSize(pathway));
+      expect(tester.getSize(explore).height, greaterThanOrEqualTo(48));
       final heroName = find.byKey(const ValueKey('hero-institution-name'));
       expect(tester.getSize(heroName).width, greaterThan(150));
       expect(tester.getSize(heroName).height, lessThan(55));

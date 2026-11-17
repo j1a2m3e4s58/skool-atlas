@@ -712,27 +712,10 @@ class _TertiaryHomeState extends State<TertiaryHome>
           ),
         ),
         const SizedBox(height: 24),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            FilledButton.icon(
-              style: FilledButton.styleFrom(minimumSize: const Size(0, 52)),
-              onPressed: () => navigate(1),
-              icon: const Icon(Icons.north_east, size: 17),
-              label: Text(content('primaryActionLabel', 'Explore institutions')),
-            ),
-            const SizedBox(height: 10),
-            OutlinedButton.icon(
-              onPressed: () => navigate(2),
-              icon: const Icon(Icons.tune, size: 18),
-              label: Text(content('secondaryActionLabel', 'Find my pathway')),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 52),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              ),
-            ),
-          ],
-        ),
+        AtlasActionRow(children: [
+          FilledButton.icon(key: const ValueKey('home-explore-action'), onPressed: () => navigate(1), icon: const Icon(Icons.north_east, size: 16), label: Text(content('primaryActionLabel', 'Explore institutions'), textAlign: TextAlign.center)),
+          OutlinedButton.icon(key: const ValueKey('home-pathway-action'), onPressed: () => navigate(2), icon: const Icon(Icons.tune, size: 16), label: Text(content('secondaryActionLabel', 'Find my pathway'), textAlign: TextAlign.center)),
+        ]),
         const SizedBox(height: 20),
         if (content('announcement', '').isNotEmpty) ...[
           Text(content('announcement', ''), style: const TextStyle(height: 1.6)),
@@ -1380,30 +1363,7 @@ class _TertiaryHomeState extends State<TertiaryHome>
                           ),
                         ),
                       ];
-                      final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
-                      final columns = constraints.maxWidth >= 720 * textScale
-                          ? actions.length : 1;
-                      final width = (constraints.maxWidth - (columns - 1) * 12) / columns;
-                      final actionStyle = ButtonStyle(
-                        minimumSize: const WidgetStatePropertyAll(Size(0, 48)),
-                        padding: const WidgetStatePropertyAll(
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
-                        shape: WidgetStatePropertyAll(RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12))),
-                      );
-                      return OutlinedButtonTheme(
-                        data: OutlinedButtonThemeData(style: actionStyle),
-                        child: FilledButtonTheme(
-                          data: FilledButtonThemeData(style: actionStyle),
-                          child: Wrap(spacing: 12, runSpacing: 12, children: [
-                            for (var index = 0; index < actions.length; index++)
-                              SizedBox(
-                                width: width,
-                                child: actions[index],
-                              ),
-                          ]),
-                        ),
-                      );
+                      return AtlasActionRow(children: actions);
                     }),
                     const SizedBox(height: 22),
                     InstitutionEvidence(
@@ -2180,11 +2140,9 @@ class _GradePlannerState extends State<LegacyGradePlanner> {
                           ),
                         ),
                       const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: [
-                          FilledButton.icon(
+                      AtlasActionRow(
+ children: [
+FilledButton.icon(
                             onPressed: () {
                               FocusScope.of(context).unfocus();
                               setState(() {
