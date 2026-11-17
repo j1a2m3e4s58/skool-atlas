@@ -41,7 +41,7 @@ report = {
     'applicationId': 'com.skoolatlas.app',
     'appName': 'Tertiary Atlas',
     'targetSdk': 36,
-    'versionCode': 4,
+    'versionCode': 5,
     'debuggable': False,
     'reviewedAdmissionsPackMatched': True,
     'buildRun': provenance['runId'],
