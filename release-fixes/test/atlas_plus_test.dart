@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:skoolatlas/atlas_plus_panel.dart';
+import 'package:skoolatlas/tertiary_data.dart';
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -69,6 +72,22 @@ void main(){
     expect(canRemindResource(row,now:DateTime(2026,11,18)),isTrue);
     row['date']=null;
     expect(canRemindResource(row,now:DateTime(2026,11,18)),isFalse);
+  });
+
+  testWidgets('pending deadline is visibly unconfirmed and cannot be exported on a phone', (tester) async {
+    tester.view.physicalSize=const Size(320,900);tester.view.devicePixelRatio=1;
+    addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+    final store=TertiaryStore();
+    store.journey.applications=[ApplicationPlan(id:'one',institutionId:'school',programme:'Course')];
+    store.journey.resources={'deadlines':[{'id':'pending','institutionId':'school','title':'Pending opportunity','date':'2099-03-01','cycle':'2099','checkedAt':'2026-11-18','sourceUrl':'https://example.test/official','status':'needs_source_review'}],'scholarships':[]};
+    await tester.pumpWidget(MaterialApp(home:Scaffold(body:SingleChildScrollView(child:Padding(padding:const EdgeInsets.all(24),child:AtlasPlusPanel(store:store,onReport:()async{}))))));
+    await tester.pumpAndSettle();
+    expect(find.text('Pending source review. The source changed or could not be reached; reminder export is paused.'),findsOneWidget);
+    expect(find.textContaining('Date pending re-verification'),findsOneWidget);
+    expect(find.text('Save calendar reminder'),findsNothing);
+    expect(find.textContaining('2099-03-01'),findsNothing);
+    expect(tester.takeException(),isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 
 }
