@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "at": "2026-11-18T01:57:55.266Z",
+  "checks": [
+    "cloud consent",
+    "create",
+    "save",
+    "share consent",
+    "family read-only",
+    "second profile restore",
+    "revocation",
+    "delete preserves device",
+    "320px layout"
+  ],
+  "errors": []
+}
