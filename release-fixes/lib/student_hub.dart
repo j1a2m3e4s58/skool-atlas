@@ -1,3 +1,4 @@
+import 'atlas_plus_panel.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'atlas_controls.dart';
@@ -96,7 +97,7 @@ class _StudentHubState extends State<StudentHub> {
                 ),
               ),
               const Text(
-                'Plan your applications, compare your options and follow the schools that matter to you. Your journey stays on this device.',
+                'Plan your applications, compare your options and follow the schools that matter to you. Your journey stays on this device unless you choose cloud backup in Atlas Plus.',
               ),
               const SizedBox(height: 18),
               if (journey.storageError != null)
@@ -168,6 +169,7 @@ FilledButton.icon(
                     'Campus life',
                     'Careers & licences',
                     'Evidence coverage',
+                    'Atlas Plus',
                   ].indexed)
                     ChoiceChip(
                       label: Text(label),
@@ -182,7 +184,8 @@ FilledButton.icon(
               if (section == 2) ...resources(),
               if (section == 3) ...galleries(),
               if (section == 4) ...updates(),
-              if (section >= 5)
+              if (section == 9) AtlasPlusPanel(store: widget.store, onReport: parentReport),
+              if (section >= 5 && section < 9)
                 GuidancePanel(
                   key: ValueKey(section),
                   store: widget.store,

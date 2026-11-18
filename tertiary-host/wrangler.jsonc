@@ -6,7 +6,7 @@
   "compatibility_date": "2026-10-19",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
-  "assets": {"directory":"../build/tertiary-web","binding":"ASSETS","run_worker_first":["/api/*","/admin","/tertiary-feed.json"],"not_found_handling":"single-page-application"},
+  "assets": {"directory":"../build/tertiary-web","binding":"ASSETS","run_worker_first":["/api/*","/admin","/family","/tertiary-feed.json"],"not_found_handling":"single-page-application"},
   "durable_objects": {"bindings":[{"name":"ATLAS_STATE","class_name":"AtlasState"}]},
   "migrations": [{"tag":"atlas-v1","new_sqlite_classes":["AtlasState"]}],
   "triggers": {"crons":["*/15 * * * *"]},

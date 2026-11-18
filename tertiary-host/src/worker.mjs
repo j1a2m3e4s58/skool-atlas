@@ -1,3 +1,5 @@
+import {plusRequest} from './plus.mjs';
+import {familyPage} from './family-page.mjs';
 import webpush from 'web-push';
 import {adminRequest,applyAdminPublication} from './admin.mjs';
 import {adminPage} from './admin-page.mjs';
@@ -13,11 +15,21 @@ const goodId=s=>/^[a-f0-9-]{36}$/.test(s);
 export default {
   async fetch(req,env) {
     const u=new URL(req.url);
+    if(u.pathname==='/family'&&req.method==='GET')return familyPage();
+    const plus=u.pathname.match(/^\/api\/plus\/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\/(create|snapshot|share|shared|revoke|delete)$/);
+    if(plus){
+      if(env.PLUS_ENABLED!=='pilot')return json({error:'Cloud workspace pilot is not enabled yet'},503);
+      const origin=req.headers.get('Origin');
+      if(origin&&origin!==u.origin)return json({error:'Cross-origin request blocked'},403);
+      if(!env.REMINDER_RATE||!(await env.REMINDER_RATE.limit({key:'plus:'+req.headers.get('CF-Connecting-IP')})).success)return json({error:'Please wait a minute before trying again'},429);
+      if(Number(req.headers.get('Content-Length')??0)>100000)return json({error:'Journey is too large'},413);
+      return instance(env,'plus:'+plus[1]).fetch(req);
+    }
     if(u.pathname==='/admin'&&req.method==='GET')return adminPage();
     if(u.pathname.startsWith('/api/admin/')&&!['/api/admin/source-review','/api/admin/check-all-sources','/api/admin/check-sources'].includes(u.pathname))return instance(env,'owner-admin').fetch(req);
     if(u.pathname==='/api/health')return json({app:'Ghana Tertiary Atlas',mode:env.APP_ENV,
       sourceMonitoring:'scheduled_every_15_minutes_full_sweep',pushConfigured:!!(env.VAPID_PUBLIC_KEY&&env.VAPID_PRIVATE_KEY),
-      publicKey:env.VAPID_PUBLIC_KEY??null,personalData:'Only opted-in push subscriptions, random device identifiers and reminder dates are stored. Grades, notes and budgets stay on the device.'});
+      publicKey:env.VAPID_PUBLIC_KEY??null,personalData:'Grades remain on-device. Optional cloud workspaces store application plans, notes and budgets with consent. Family snapshots exclude grades, notes and budgets. Opted-in push subscriptions store reminder dates.'});
     if(u.pathname==='/tertiary-feed.json') {
       const result=await instance(env,'public-feed').fetch('https://internal/feed');
       const headers=new Headers(result.headers);headers.set('Cache-Control','no-store');headers.set('Access-Control-Allow-Origin','*');
@@ -111,6 +123,7 @@ export class AtlasState {
   async fetch(req) {
     const path=new URL(req.url).pathname;
     try {
+      if(path.startsWith('/api/plus/'))return await plusRequest(req,this.state.storage);
       if(path.startsWith('/api/admin/')||path==='/publication')return adminRequest(req,this.env,this.state.storage);
       if(path==='/subscription')return await this.subscription(req);
       if(path==='/monitor') {
