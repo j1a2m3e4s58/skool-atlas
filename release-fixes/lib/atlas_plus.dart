@@ -73,3 +73,5 @@ List<Map<String,dynamic>> personalResources(StudentJourney journey, {DateTime? n
   rows.sort((a,b)=>(a['date'] as String? ?? '9999').compareTo(b['date'] as String? ?? '9999'));
   return rows;
 }
+
+bool canRemindResource(Map<String,dynamic> row, {DateTime? now}) => row['date'] != null && row['status'] != 'needs_source_review' && !resourceIsClosed(row, now:now);

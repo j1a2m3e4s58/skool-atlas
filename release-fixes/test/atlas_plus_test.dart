@@ -62,4 +62,13 @@ void main(){
     final rows=personalResources(journey,now:DateTime(2026,11,18));
     expect(rows.map((r)=>r['id']),['future','unknown']);expect(rows.first['checkedAt'],'2026-11-18');
   });
+  test('changed or unavailable sources cannot produce reminder exports',(){
+    final row=<String,dynamic>{'date':'2027-03-01','status':'needs_source_review'};
+    expect(canRemindResource(row,now:DateTime(2026,11,18)),isFalse);
+    row['status']='source_checked';
+    expect(canRemindResource(row,now:DateTime(2026,11,18)),isTrue);
+    row['date']=null;
+    expect(canRemindResource(row,now:DateTime(2026,11,18)),isFalse);
+  });
+
 }
