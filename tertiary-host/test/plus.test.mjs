@@ -9,3 +9,16 @@ test('backup round trip excludes grades and stale writes cannot overwrite',async
 test('family shares exclude private fields and cannot edit owner data; expiry and revocation enforced',async()=>{const f=fixture();await f.request('create',{consent:true});await f.request('snapshot',{revision:0,snapshot});assert.equal((await f.request('share',{ids:['a']})).status,400);const share=await f.request('share',{ids:['a'],consent:true});const result=await f.request('shared',undefined,share.key);assert.equal(result.readOnly,true);assert.equal(result.applications[0].note,undefined);assert.equal(result.applications[0].budget,undefined);assert.equal((await f.request('snapshot',undefined,share.key)).status,401);assert.equal((await f.request('snapshot',{revision:1,snapshot},share.key)).status,401);await f.request('revoke',{});assert.equal((await f.request('shared',undefined,share.key)).status,404);const again=await f.request('share',{ids:['a'],consent:true});const row=await f.storage.get('plusShare');row.expiresAt=0;await f.storage.put('plusShare',row);assert.equal((await f.request('shared',undefined,again.key)).status,404);});
 test('delete removes backup and share without deleting device data',async()=>{const f=fixture();await f.request('create',{consent:true});await f.request('snapshot',{revision:0,snapshot});await f.request('share',{ids:['a'],consent:true});assert.equal((await f.request('delete',{confirm:true})).status,200);assert.equal(f.storage.data.size,0);assert.equal((await f.request('snapshot')).status,401);});
 test('malformed plans, duplicate IDs, invalid dates and oversized lists rejected',()=>{assert.throws(()=>validateSnapshot({...snapshot,applications:[...snapshot.applications,...snapshot.applications]}));assert.throws(()=>validateSnapshot({...snapshot,comparison:['unknown']}));assert.throws(()=>validateSnapshot({...snapshot,applications:[{...snapshot.applications[0],targetDate:'2027-02-30'}]}));assert.throws(()=>validateSnapshot({...snapshot,applications:Array(51).fill(snapshot.applications[0])}));});
+
+test('malformed JSON shapes and oversized uploads are rejected before storage',async()=>{
+ const storage=new Storage();
+ for(const [body,status] of [['null',400],['[]',400],['{',400],['x'.repeat(100001),413]]){
+  const response=await plusRequest(new Request('https://atlas.test/api/plus/id/create',{method:'POST',headers:{'Content-Type':'application/json'},body}),storage);
+  assert.equal(response.status,status);assert.equal(storage.data.size,0);
+ }
+});
+test('another valid workspace key cannot read, change or delete this workspace',async()=>{
+ const a=fixture(),b=fixture();const other=await a.request('create',{consent:true});await b.request('create',{consent:true});await b.request('snapshot',{revision:0,snapshot});
+ for(const [action,body] of [['snapshot',undefined],['snapshot',{revision:1,snapshot}],['delete',{confirm:true}],['revoke',{}]])assert.equal((await b.request(action,body,other.key)).status,401);
+ assert.equal((await b.request('snapshot')).revision,1);
+});

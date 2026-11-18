@@ -21,6 +21,7 @@ class _AtlasPlusPanelState extends State<AtlasPlusPanel> {
   String status='Your journey stays on this phone until you choose cloud backup.';
   String? sharedLink;
   StudentJourney get journey=>widget.store.journey;
+  String schoolName(String id)=>widget.store.institutions.where((school)=>school.id==id).firstOrNull?.name ?? 'Institution not in this catalogue ($id)';
   @override void dispose(){api.close();code.dispose();super.dispose();}
   Future<void> run(Future<void> Function() task) async {
     setState(()=>busy=true);
@@ -41,7 +42,7 @@ class _AtlasPlusPanelState extends State<AtlasPlusPanel> {
     if(plans.isEmpty){setState(()=>status='Save applications to cloud before sharing.');return;}
     final selected=<String>{};
     bool permission=false;
-    final accepted=await showDialog<bool>(context:context,builder:(ctx)=>StatefulBuilder(builder:(ctx,update)=>AlertDialog(title:const Text('Share a family shortlist'),content:SizedBox(width:520,child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[const Text('Choose up to six saved applications. Share only programme, institution, application stage and your target date. Grades, notes and budgets stay private.'),for(final plan in plans)CheckboxListTile(value:selected.contains(plan.id),title:Text(plan.programme),onChanged:(value)=>update((){if(value==true&&selected.length<6){selected.add(plan.id);}else if(value!=true){selected.remove(plan.id);}})),CheckboxListTile(value:permission,title:const Text('I agree to share these selected details'),subtitle:const Text('Anyone with the link can read this snapshot for seven days. A new link replaces the previous one. Copies already saved cannot be revoked.'),onChanged:(v)=>update(()=>permission=v??false))]))),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('Cancel')),FilledButton(onPressed:permission&&selected.isNotEmpty?()=>Navigator.pop(ctx,true):null,child:const Text('Create private link'))])));
+    final accepted=await showDialog<bool>(context:context,builder:(ctx)=>StatefulBuilder(builder:(ctx,update)=>AlertDialog(title:const Text('Share a family shortlist'),content:SizedBox(width:520,child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[const Text('Choose up to six saved applications. Share only programme, institution, application stage and your target date. Grades, notes and budgets stay private.'),for(final plan in plans)CheckboxListTile(value:selected.contains(plan.id),title:Text(plan.programme),subtitle:Text(schoolName(plan.institutionId)),onChanged:(value)=>update((){if(value==true&&selected.length<6){selected.add(plan.id);}else if(value!=true){selected.remove(plan.id);}})),CheckboxListTile(value:permission,title:const Text('I agree to share these selected details'),subtitle:const Text('Anyone with the link can read this snapshot for seven days. A new link replaces the previous one. Copies already saved cannot be revoked.'),onChanged:(v)=>update(()=>permission=v??false))]))),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('Cancel')),FilledButton(onPressed:permission&&selected.isNotEmpty?()=>Navigator.pop(ctx,true):null,child:const Text('Create private link'))])));
     if(accepted!=true)return;
     await run(()async{final result=await api.request('share',{'ids':selected.toList(),'consent':true});sharedLink='$plusHost/family#${api.workspace}.${result['key']}';status='Read-only snapshot created. Expires ${result['expiresAt']}. The snapshot uses your last cloud save.';});
   }
@@ -73,6 +74,7 @@ class _AtlasPlusPanelState extends State<AtlasPlusPanel> {
       card('03 · STAY AHEAD','Your dated opportunities','Application deadlines and scholarship notices for schools in your journey. These are published resources, not a guarantee of eligibility. Source dates remain visible; unconfirmed dates stay unconfirmed.',[
         if(resources.isEmpty)const Text('No open published opportunities currently match your saved schools. This does not mean no opportunities exist. Check your institution’s official website.'),
         for(final row in resources)...[
+          Text(schoolName(row['institutionId'] as String),style:const TextStyle(color:ink,fontWeight:FontWeight.w600)),const SizedBox(height:6),
           Text(row['title'] as String,style:const TextStyle(fontWeight:FontWeight.bold,fontSize:17)),const SizedBox(height:8),
           if(row['status']=='needs_source_review')const Text('Pending source review. The source changed or could not be reached; reminder export is paused.',style:TextStyle(color:Colors.deepOrange,fontWeight:FontWeight.bold,height:1.5)),
           Text('${row['status']=='needs_source_review'?'Date pending re-verification':row['date']??'Date not confirmed'} · ${row['cycle']}\nSource checked: ${row['checkedAt']}',style:const TextStyle(height:1.5)),const SizedBox(height:10),
