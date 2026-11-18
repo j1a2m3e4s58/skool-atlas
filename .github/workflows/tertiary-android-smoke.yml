@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 50
     env:
       GH_TOKEN: ${{ github.token }}
-      SOURCE_RUN: '44214170998'
+      SOURCE_RUN: '44215834928'
     steps:
       - name: Wait for tested signed artifact
         run: |
@@ -32,7 +32,7 @@ jobs:
           from pathlib import Path
           import json,hashlib,zipfile,struct,subprocess,shutil
           root=Path('signed'); p=json.loads((root/'provenance.json').read_text())
-          assert p['workflowCommit']=='19e4f0e7011f3b2fba5fd91cb8497220b351ed1d'
+          assert p['workflowCommit']=='98c745872e2aa19e360909653f4b169bc5291ced'
           for name,digest in p['files'].items():
               assert hashlib.sha256((root/name).read_bytes()).hexdigest()==digest,name
           expected='330bb2dff055b2d24feae9c56190aff00186c7b2aa6ab5199cdf51d7c9a7f509'
