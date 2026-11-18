@@ -24,8 +24,11 @@ export async function plusRequest(req,storage){
  let body={};
  if(req.method==='POST'){
   if(!req.headers.get('Content-Type')?.startsWith('application/json'))return json({error:'JSON required'},415);
-  const raw=await req.text();if(raw.length>100000)return json({error:'Journey is too large'},413);
-  try{body=JSON.parse(raw);}catch{return json({error:'Invalid request'},400);}
+  const reader=req.body?.getReader(),chunks=[];let size=0;
+  if(reader)while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>100000){await reader.cancel();return json({error:'Journey is too large'},413);}chunks.push(value);}
+  const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
+  try{body=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}catch{return json({error:'Invalid request'},400);}
+  if(!body||typeof body!=='object'||Array.isArray(body))return json({error:'Invalid request'},400);
  }
  const token=(req.headers.get('Authorization')??'').replace(/^Bearer /,'');
  if(action==='create'&&req.method==='POST'){

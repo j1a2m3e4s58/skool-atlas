@@ -12,5 +12,5 @@
   "triggers": {"crons":["*/15 * * * *"]},
   "ratelimits": [{"name":"REMINDER_RATE","namespace_id":"73102601","simple":{"limit":10,"period":60}}],
   "observability": {"enabled":true,"head_sampling_rate":0.1},
-  "vars":{"APP_ENV":"production","VAPID_SUBJECT":"https://ghana-tertiary-atlas.ghana-tertiary-atlas-host.workers.dev/"}
+  "vars":{"APP_ENV":"production","PLUS_ENABLED":"pilot","VAPID_SUBJECT":"https://ghana-tertiary-atlas.ghana-tertiary-atlas-host.workers.dev/"}
 }

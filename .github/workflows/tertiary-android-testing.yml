@@ -116,8 +116,8 @@ jobs:
         working-directory: ${{ runner.temp }}/tertiary-release
         run: |
           set -euo pipefail
-          flutter build appbundle --release --no-tree-shake-icons --build-number=7 --dart-define=TERTIARY_FEED_URL=https://ghana-tertiary-atlas.ghana-tertiary-atlas-host.workers.dev/tertiary-feed.json
-          flutter build apk --release --no-tree-shake-icons --build-number=7 --target-platform android-arm,android-arm64,android-x64 --dart-define=TERTIARY_FEED_URL=https://ghana-tertiary-atlas.ghana-tertiary-atlas-host.workers.dev/tertiary-feed.json
+          flutter build appbundle --release --no-tree-shake-icons --build-number=8 --dart-define=TERTIARY_FEED_URL=https://ghana-tertiary-atlas.ghana-tertiary-atlas-host.workers.dev/tertiary-feed.json
+          flutter build apk --release --no-tree-shake-icons --build-number=8 --target-platform android-arm,android-arm64,android-x64 --dart-define=TERTIARY_FEED_URL=https://ghana-tertiary-atlas.ghana-tertiary-atlas-host.workers.dev/tertiary-feed.json
           cmp pubspec.lock "$RUNNER_TEMP/atlas-pubspec.lock"
           sha256sum --check --quiet "$RUNNER_TEMP/dart-sdk.sha256"
           mkdir -p build/android-tested
